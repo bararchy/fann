@@ -1,148 +1,76 @@
-IF(BIICODE)
-	# Initializes block variables
-	INIT_BIICODE_BLOCK()
-	
-	# Output folder for binaries
-	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../bin/fann/examples)
-	SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG  ${CMAKE_CURRENT_SOURCE_DIR}/../bin/fann/examples)
+# Set the name of the project
+PROJECT (FANN)
 
-	# Copy datasets for examples if exists
-	if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/datasets)
-	  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/datasets DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../bin/)
-	ENDIF()
+# Display all outputs, including compiler lines
+#SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-	# Include recipes block for CPP11 activation
-	INCLUDE(biicode/cmake/tools)
+# If a module is specified, the file <modulename>.cmake
+#   is searched in the below path
+SET(CMAKE_MODULE_PATH
+	${CMAKE_SOURCE_DIR}/cmake/Modules 
+)
 
-	# Are examples present?
-	LIST(FIND BII_BLOCK_EXES examples_parallel_train examples_present)
-	SET(examples_present (NOT ${examples_present} EQUAL "-1")) # Depending on examples
-	IF(${examples_present} AND NOT WIN32 AND NOT APPLE) # Linux doesn't have GetTickCount
-		LIST(REMOVE_ITEM BII_BLOCK_EXES examples_parallel_train)		
-	ENDIF()
+# Internally set version number
+SET(VERSION 2.1.99)
 
-	ADD_BIICODE_TARGETS()
-	
-	IF(${examples_present})
-	   # This example needs CPP11
-           ACTIVATE_CPP11(lasote_fann_examples_xor_sample)
-	ENDIF()
-
-	TARGET_COMPILE_OPTIONS(${BII_BLOCK_TARGET} INTERFACE -DGTEST_ENABLE_CATCH_EXCEPTIONS_=1)
-
-	IF(MSVC)
-	  TARGET_COMPILE_OPTIONS(${BII_LIB_TARGET} PUBLIC -DFANN_DLL_EXPORTS)
-	ELSE()
-	  IF(${examples_present})
-	    TARGET_LINK_LIBRARIES(${BII_BLOCK_TARGET} INTERFACE gomp)
-	  ENDIF()
-	ENDIF()
-ELSE()
-cmake_minimum_required (VERSION 2.8)
-
-if (NOT DEFINED CMAKE_BUILD_TYPE)
-    set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
-endif ()
-
-project (FANN)
-
-list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
-
-set (FANN_VERSION_MAJOR 2)
-set (FANN_VERSION_MINOR 2)
-set (FANN_VERSION_PATCH 0)
-set (FANN_VERSION_STRING ${FANN_VERSION_MAJOR}.${FANN_VERSION_MINOR}.${FANN_VERSION_PATCH})
-
-option(BUILD_SHARED_LIBS "build shared/static libs" ON)
-
+# 'DefineInsallationPaths' is not a standard CMake module
 INCLUDE(DefineInstallationPaths)
+FIND_PACKAGE(BLAS REQUIRED)
 
 
-configure_file (cmake/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/include/config.h)
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/src/include/)
+# Copies 'config.h' into '/src/include' after replacing any variables in the file
+#   referenced as ${VAR} or @VAR@ with their CMake values
+configure_file( ${CMAKE_SOURCE_DIR}/cmake/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/src/include/config.h )
 
-configure_file (cmake/fann.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/fann.pc @ONLY)
+# Add '/src/include' to the directories searched by the compiler for include files
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/src/include/)
+
+# Copies 'fann.pc.cmake' to '/'. Here, only @VAR@ will be replaced, and so ${VAR}
+#   will be ignored
+configure_file( ${CMAKE_SOURCE_DIR}/cmake/fann.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/fann.pc @ONLY )
+
+SET(PKGCONFIG_INSTALL_DIR /lib/pkgconfig)
+SET(FANN_LIB_INSTALL_DIR ${LIB_INSTALL_DIR} CACHE PATH "" FORCE)
+SET(ENABLE_SSE true CACHE BOOL "Enables or disables the compilation of the SSE library")
+SET(ENABLE_BLAS ${BLAS_FOUND} CACHE BOOL "Enables or disables the compilation of the BLAS library")
 
 ########### install files ###############
 
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/fann.pc DESTINATION ${PKGCONFIG_INSTALL_DIR})
+#   Installs the listed files (>= third parameter) with the
+#   given extension (second parameter) in the installation
+#   directory (first parameter)
+INSTALL(FILES fann.pc DESTINATION ${PKGCONFIG_INSTALL_DIR})
+#INSTALL_FILES( ${PKGCONFIG_INSTALL_DIR} FILES  fann.pc )   # ANTIQUATED
 
-include_directories(include)
+# Adds a subdirectory to the build, where the source
+#   CMakeLists.txt is in the parameter directory
 ADD_SUBDIRECTORY( src ) 
 
-################# cpack ################
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fast Artificial Neural Network Library (FANN)")
-SET(CPACK_PACKAGE_VENDOR "Steffen Nissen")
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-SET(CPACK_PACKAGE_VERSION_MAJOR "${FANN_VERSION_MAJOR}")
-SET(CPACK_PACKAGE_VERSION_MINOR "${FANN_VERSION_MINOR}")
-SET(CPACK_PACKAGE_VERSION_PATCH "${FANN_VERSION_PATCH}")
-SET(CPACK_GENERATOR "TGZ;ZIP")
-SET(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Steffen Nissen") 
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
-IF(WIN32 AND NOT UNIX)
-  # There is a bug in NSI that does not handle full unix paths properly. Make
-  # sure there is at least one set of four (4) backlasshes.
-#  SET(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
-#  SET(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\MyExecutable.exe")
-#  SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} My Famous Project")
-  SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\leenissen.dk/fann/")
-  SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\leenissen.dk/fann/")
-  SET(CPACK_NSIS_CONTACT "steffen.fann@gmail.com")
-  SET(CPACK_NSIS_MODIFY_PATH ON)
-ELSE(WIN32 AND NOT UNIX)
-#  SET(CPACK_STRIP_FILES "bin/MyExecutable")
-#  SET(CPACK_SOURCE_STRIP_FILES "")
-ENDIF(WIN32 AND NOT UNIX)
-#SET(CPACK_PACKAGE_EXECUTABLES "MyExecutable" "My Executable")
-INCLUDE(CPack)
+#original Makefile.am contents follow:
 
-################# config ################
+#SUBDIRS = src
+#
+#pkgconfigdir = $(libdir)/pkgconfig
+#pkgconfig_DATA = fann.pc
+#
+#EXTRA_DIST = benchmarks examples MicrosoftVisualC++6.0 MicrosoftVisualC++.Net \
+#	MicrosoftWindowsDll BorlandC++Builder6.0 src/include/config.h \
+#	debian/changelog debian/compat debian/control debian/copyright \
+#	debian/docs debian/libfann2-dev.dirs debian/libfann2-dev.examples \
+#	debian/libfann2-dev.files debian/libfann2-dev.install \
+#	debian/libfann2.dirs debian/libfann2.files debian/libfann2.install \
+#	debian/libfann2-py.dirs  debian/libfann2-py.files \
+#	debian/libfann2-py.install debian/rules \
+#	doc/advancedusage.txt doc/gettingstarted.txt doc/theory.txt \
+#	doc/fixedpointusage.txt doc/installation.txt doc/fann_en.pdf \
+#	python
+#
+#dist-hook:
+#	rm -rf `find $(distdir) -name "*~" -o -name ".#*" -o -name "CVS"`
+#	(cd $(distdir)/examples && make clean)
+#	(cd $(distdir)/python && make clean)
+#	(cd $(distdir)/benchmarks && make clean)
+#	zip -9 -r $(distdir).zip $(distdir)
+#	tar chojf $(distdir).tar.bz2 $(distdir)
 
-set (FANN_USE_FILE ${CMAKE_CONFIG_DIR}/fann-use.cmake)
-set (FANN_ROOT_DIR ${CMAKE_INSTALL_PREFIX})
-set (FANN_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
-set (FANN_INCLUDE_DIRS ${FANN_INCLUDE_DIR})
-set (FANN_LIBRARY_DIRS ${CMAKE_INSTALL_PREFIX}/lib)
-set (FANN_LIBRARY fann)
-set (FANN_LIBRARIES ${FANN_LIBRARY})
-if (UNIX)
-  list (APPEND FANN_LIBRARIES m)
-endif ()
-
-if (CMAKE_VERSION VERSION_LESS 2.8.8)
-  configure_file (cmake/fann-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/fann-config.cmake @ONLY)
-else ()
-
-  include (CMakePackageConfigHelpers)
-
-  configure_package_config_file (
-    cmake/fann-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/fann-config.cmake
-    INSTALL_DESTINATION FANN_CMAKE_CONFIG_DIR
-    PATH_VARS
-     FANN_USE_FILE
-     FANN_ROOT_DIR
-     FANN_INCLUDE_DIR
-     FANN_INCLUDE_DIRS
-     FANN_LIBRARY_DIRS
-   NO_CHECK_REQUIRED_COMPONENTS_MACRO
-  )
-
-endif ()
-
-install (FILES
- ${CMAKE_CURRENT_BINARY_DIR}/fann-config.cmake
- cmake/fann-use.cmake
- DESTINATION ${CMAKE_CONFIG_DIR}
- )
-
-################# compile tests ################
-
-ADD_SUBDIRECTORY( lib/googletest )
-ADD_SUBDIRECTORY( tests )
-
-ENDIF()

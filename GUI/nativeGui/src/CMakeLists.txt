@@ -1,0 +1,5 @@
+ADD_SUBDIRECTORY( annGraphWidget )
+ADD_SUBDIRECTORY( dataStructure )
+ADD_SUBDIRECTORY( qwt-5.0.2 )
+ADD_SUBDIRECTORY( nativeGui )
+

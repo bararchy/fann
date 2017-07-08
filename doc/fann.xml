@@ -1,0 +1,821 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<!-- $Id: fann.xml,v 1.22.4.2 2007/07/18 15:46:02 hawk78 Exp $ -->
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "docbook/xml-dtd-4.1.2/docbookx.dtd">
+<book>
+  <bookinfo id="bookinfo">
+    <title>Fast Artificial Neural Network Library - PHP Extension</title>
+    <authorgroup id="authors">
+      <author>
+        <firstname>Steffen</firstname>
+        <surname>Nissen</surname>
+      </author>
+      <author>
+        <firstname>Evan</firstname>
+        <surname>Nemerson</surname>
+      </author>
+    </authorgroup>
+    <copyright>
+      <year>2004</year>
+    </copyright>
+  </bookinfo>
+  <chapter id="php">
+    <title id="php.title">PHP Extension</title>
+    <para>These functions allow you to interact with the FANN library from PHP.</para>
+    <para>This extension requires the 
+    <ulink url="http://fann.sf.net/">FANN</ulink> library, version 1.1.0 or later.</para>
+    <para>
+      This extension supports the same activation functions as the library, a list of which can
+      be found in the reference manual for the C library.
+    </para>
+    <section id="php.install">
+      <title id="php.instal.title">Installation</title>
+
+      <section id="php.install.pear">
+        <title id="php.install.pear.title">Using PEAR</title>
+
+        <para>
+          The easiest way to install FANN-PHP is to use PEAR- if you
+          have a fairly recent version of PHP installed, simply run
+          <command>pear install fann</command>. Note that if there are
+          no stable releases of FANN-PHP, you may have to specify the
+          URI for the package, which can be obtained from <ulink
+          url="http://pecl.php.net/fann">http://pecl.php.net/fann</ulink>.
+        </para>
+        <para>
+          If you cannot install FANN-PHP using PEAR, you can try
+          following the (obsolete) instructions at <ulink
+          url="http://www.cs.utexas.edu/users/UTCS/online-docs/php/pear/faq.install-pecl.html">http://www.cs.utexas.edu/users/UTCS/online-docs/php/pear/faq.install-pecl.html</ulink>.
+        </para>
+	<para>
+	  If you use one of these methods, you'll need to either
+	  dl('fann.so') or add it to your php.ini
+	</para>
+      <para>
+        If you use either of the above methods, you will probably need
+        to be root.
+      </para>
+      </section>
+      <section id="php.install.ext">
+        <title id="php.install.ext.title">Compiling into PHP</title>
+	<para>
+	  Please only use this method if using the methods outlined in
+	  <link linkend="php.install.pear"
+	  endterm="php.install.pear.title"/> have failed.
+	</para>
+        <para>
+          If you wish to compile FANN-PHP into PHP itself, you
+          can. First, uncompress the package into the ext subdirectory
+          of your copy of the PHP source code, and rename the
+          directory to ext/fann (from fann-x.x.x).
+        </para>
+        <para>
+          Next, you must rebuild the configure script- to do so, run
+          <command>./buildconf</command> from the PHP source
+          directory.
+        </para>
+	<para>
+	  From here on, the procedure is similar to when you built PHP
+	  originally- run <command>./configure</command> with your
+	  desired options, plus <parameter>--with-fann</parameter>.
+	</para>
+	<para>
+	  Finally, run <command>make</command> and <command>make
+	  install</command>. Note that you will probably need to be
+	  root for <command>make install</command> to work.
+	</para>
+	<para>
+	  This method may require flex and bison to work- more
+	  information can be obtained at <ulink
+	  url="http://www.php.net/anoncvs.php">http://www.php.net/anoncvs.php</ulink>
+	</para>
+      </section>
+    </section>
+    <section id="php.api">
+      <title id="php.api.title">API Reference</title>
+      <refentry id="function.fann_create">
+        <refnamediv>
+          <refname>fann_create</refname>
+          <refpurpose>Creates an artificial neural network.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>mixed</type>
+            <methodname>fann_create</methodname>
+            <methodparam>
+              <type>mixed</type>
+              <parameter>data</parameter>
+            </methodparam>
+            <methodparam choice="opt">
+              <type>float</type>
+              <parameter>connection_rate</parameter>
+            </methodparam>
+            <methodparam choice="opt">
+              <type>float</type>
+              <parameter>learning_rate</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_create</function> will create an artificial neural network using the data given.
+	  </para>
+          <para>
+	    If the first parameter is an array, <function>fann_create</function> will use the data and structure of the
+	    array, as well as <parameter>connection_rate</parameter> and <parameter>learning_rate</parameter>.
+	  </para>
+          <para>
+	    If <function>fann_create</function> is called with a sole string argument, it will attempt to load an ANN
+	    created with <function>fann_save</function> from the file at <parameter>filename</parameter>.
+	  </para>
+          <para>
+            <function>fann_create</function> will return the artificial neural network on success, or FALSE if it fails.
+	  </para>
+          <example id="example.php.fann_create.scratch">
+            <title id="example.php.fann_create.scratch.title"><function>fann_create</function> from scratch</title>
+            <programlisting role="php">
+<![CDATA[
+<?php
+$ann = fann_create(
+  /* Layers. In this case, three layers-
+   * two input neurons, 4 neurons on a
+   * hidden layer, and one output neuron. */
+  array(2, 4, 1),
+  1.0,
+  0.7);
+?>
+]]>
+            </programlisting>
+          </example>
+          <example id="example.php.fann_create.load">
+            <title id="example.php.fann_create.load.title"><function>fann_create</function> loading from a file</title>
+            <programlisting role="php">
+<![CDATA[
+<?php
+$ann = fann_create("http://www.example.com/ann.net");
+?>
+]]>
+            </programlisting>
+          </example>
+          <para>
+	    See also <link linkend="function.fann_save"><function>fann_save</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_train">
+        <refnamediv>
+          <refname>fann_train</refname>
+          <refpurpose>Train an artificial neural network.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>bool</type>
+            <methodname>fann_train</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>mixed</type>
+              <parameter>data</parameter>
+            </methodparam>
+            <methodparam>
+              <type>int</type>
+              <parameter>max_iterations</parameter>
+            </methodparam>
+            <methodparam>
+              <type>double</type>
+              <parameter>desired_error</parameter>
+            </methodparam>
+            <methodparam choice="opt">
+              <type>int</type>
+              <parameter>iterations_between_reports</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_train</function> will train <parameter>ann</parameter> on the data supplied, returning TRUE
+	    on success or FALSE on failure.
+	  </para>
+          <para>
+	    Resources is an artificial neural network returned by <function>fann_create</function>.
+	  </para>
+          <para>
+            <parameter>data</parameter> must be either an array of training data, or the URI of a properly formatted
+	    training file.
+	  </para>
+          <para>
+            <function>fann_train</function> will continue training until <parameter>desired_error</parameter> is
+	    reached, or <parameter>max_iterations</parameter> is exceeded.
+	  </para>
+          <para>
+	    If <parameter>iterations_between_reports</parameter> is set, <function>fann_create</function> will output a
+	    short progress report every <parameter>iterations_between_reports</parameter>. Default is 0 (meaning no
+	    reports).
+	  </para>
+          <example id="example.php.fann_train">
+            <title id="example.php.fann_train.title">
+            <function>fann_create</function> from training data</title>
+            <programlisting role="php">
+<![CDATA[
+<?php
+$ann = fann_create(array(2, 4, 1), 1.0, 0.7);
+if ( fann_train($ann,
+           array(
+                 array(
+                       array(0,0), /* Input(s) */
+                       array(0) /* Output(s) */
+                       ),
+                 array(
+                       array(0,1), /* Input(s) */
+                       array(1) /* Output(s) */
+                       ),
+                 array(
+                       array(1,0), /* Input(s) */
+                       array(1) /* Output(s) */
+                       ),
+                 array(array(1,1), /* Input(s) */
+                       array(0) /* Output(s) */
+                       )
+                 ),
+           100000,
+           0.00001,
+           1000) == FALSE) {
+  exit('Could not train $ann.');
+}
+?>
+]]>
+            </programlisting>
+          </example>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_save">
+        <refnamediv>
+          <refname>fann_save</refname>
+          <refpurpose>Save an artificial neural network to a file.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>bool</type>
+            <methodname>fann_save</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>string</type>
+              <parameter>filename</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_save</function> will save <parameter>ann</parameter> to <parameter>filename</parameter>,
+	    returning TRUE on success or FALSE on failure.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_create"><function>fann_create</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_run">
+        <refnamediv>
+          <refname>fann_run</refname>
+          <refpurpose>Run an artificial neural network.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>mixed</type>
+            <methodname>fann_run</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>array</type>
+              <parameter>input</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_run</function> will run <parameter>input</parameter> through <parameter>ann</parameter>,
+	    returning an an output array on success or FALSE on failure.
+	  </para>
+          <example id="example.php.fann_run">
+            <title id="example.php.fann_run.title">
+            <function>fann_run</function>Example</title>
+            <programlisting role="php">
+<![CDATA[
+<?php
+if ( ($ann = fann_create("http://www.example.com/ann.net")) == FALSE )
+  exit("Could not create ANN.");
+if ( fann_train($ann, "http://www.example.com/train.data", 100000, 0.00001) == FALSE )
+  exit("Could not train ANN.");
+
+if ( ($output = fann_run($ann, array(0, 1))) == FALSE )
+  exit("Could not run ANN.");
+else
+  print_r($output);
+?>
+]]>
+            </programlisting>
+          </example>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_randomize_weights">
+        <refnamediv>
+          <refname>fann_randomize_weights</refname>
+          <refpurpose>Randomize the weights of the neurons in the network.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>void</type>
+            <methodname>fann_randomize_weights</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam choice="opt">
+              <type>float</type>
+              <parameter>minimum</parameter>
+            </methodparam>
+            <methodparam choice="opt">
+              <type>float</type>
+              <parameter>maximum</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_randomize_weights</function> will randomize the weights of all neurons in
+	    <parameter>ann</parameter>, effectively resetting the network.
+	  </para>
+	  <para>
+	    <link linkend="function.fann_init_weights"><function>fann_init_weights</function></link>
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_init_weights">
+        <refnamediv>
+          <refname>fann_init_weights</refname>
+          <refpurpose>Initialize the weight of each connection.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>void</type>
+            <methodname>fann_init_weights</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>mixed</type>
+              <parameter>training_data</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+	    This function behaves similarly to <link linkend="function.fann_randomize_weights"><function>fann_randomize_weights</function></link>.
+	    It will use the algorithm developed by Derrick Nguyen and Bernard Widrow [<link linkend="bib.nguyen_1990" endterm="bib.nguyen_1990.abbrev" />]
+	    to set the weights in such a way as to speed up training.
+	  </para>
+	  <para>
+	    The algorithm requires access to the range of the input data (ie, largest and smallest input), and therefore accepts a second
+	    argument, <parameter>data</parameter>, which is the training data that will be used to train the network.
+	  </para>
+	  <para>
+	    <link linkend="function.fann_randomize_weights"><function>fann_randomize_weights</function></link>
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_MSE">
+        <refnamediv>
+          <refname>fann_get_MSE</refname>
+          <refpurpose>Get the mean squared error.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>float</type>
+            <methodname>fann_get_MSE</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_MSE</function> will return the mean squared error (MSE) of <parameter>ann</parameter>,
+	    or 0 if it is unavailable.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_num_input">
+        <refnamediv>
+          <refname>fann_get_num_input</refname>
+          <refpurpose>Get the number of input neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>int</type>
+            <methodname>fann_get_num_input</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+          <function>fann_get_num_input</function>will return the number of input neurons in 
+          <parameter>ann</parameter>.</para>
+          <para>
+	    See also <link linkend="function.fann_get_num_output"><function>fann_get_num_output</function></link>,
+	    <link linkend="function.fann_get_total_neurons"><function>fann_get_total_neurons</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_num_output">
+        <refnamediv>
+          <refname>fann_get_num_output</refname>
+          <refpurpose>Get the number of output neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>int</type>
+            <methodname>fann_get_num_output</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_num_output</function> will return the number of output neurons in
+	    <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_get_num_input"><function>fann_get_num_input</function></link>,
+	    <link linkend="function.fann_get_total_neurons"><function>fann_get_total_neurons</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_total_neurons">
+        <refnamediv>
+          <refname>fann_get_total_neurons</refname>
+          <refpurpose>Get the total number of neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>int</type>
+            <methodname>fann_get_total_neurons</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_total_neurons</function>will return the total number of neurons in
+	    <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_get_num_input"><function>fann_get_num_input</function></link>,
+	    <link linkend="function.fann_get_num_output"><function>fann_get_num_output</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_total_connections">
+        <refnamediv>
+          <refname>fann_get_total_connections</refname>
+          <refpurpose>Get the total number of connections.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>int</type>
+            <methodname>fann_get_total_connections</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_total_connections</function> will return the total number of connections in 
+            <parameter>ann</parameter>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_learning_rate">
+        <refnamediv>
+          <refname>fann_get_learning_rate</refname>
+          <refpurpose>Get the learning rate.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>float</type>
+            <methodname>fann_get_learning_rate</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_learning_rate</function> will return the learning rate of <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_set_learning_rate"><function>fann_set_learning_rate</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_activation_function_hidden">
+        <refnamediv>
+          <refname>fann_get_activation_function_hidden</refname>
+          <refpurpose>Get the activation function of the hidden neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>int</type>
+            <methodname>fann_get_activation_function_hidden</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_activation_function_hidden</function> will return the activation function for the hidden
+	    neurons in <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_set_activation_function_hidden"><function>fann_set_activation_function_hidden</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_activation_function_output">
+        <refnamediv>
+          <refname>fann_get_activation_function_output</refname>
+          <refpurpose>Get the activation function of the output neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>int</type>
+            <methodname>fann_get_activation_function_output</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_activation_function_output</function> will return the activation function for the output
+	    neurons in <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_set_activation_function_output"><function>fann_set_activation_function_output</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_activation_steepness_hidden">
+        <refnamediv>
+          <refname>fann_get_activation_steepness_hidden</refname>
+          <refpurpose>Get the steepness of the activation function for the hidden neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>float</type>
+            <methodname>fann_get_activation_steepness_hidden</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_activation_steepness_hidden</function> will return the steepness of the activation
+	    function for the hidden neurons in <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also
+	    <link linkend="function.fann_set_activation_steepness_hidden"><function>fann_set_activation_steepness_hidden</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_get_activation_steepness_output">
+        <refnamediv>
+          <refname>fann_get_activation_steepness_output</refname>
+          <refpurpose>Get the steepness of the activation function for the output neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>float</type>
+            <methodname>fann_get_activation_steepness_output</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_get_activation_steepness_output</function> will return the steepness of the activation
+	    function for the output neurons in <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_set_activation_steepness_output"><function>fann_set_activation_steepness_output</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_set_learning_rate">
+        <refnamediv>
+          <refname>fann_set_learning_rate</refname>
+          <refpurpose>Set the learning rate.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>float</type>
+            <methodname>fann_set_learning_rate</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_set_learning_rate</function> will return the learning rate of <parameter>ann</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_set_learning_rate"><function>fann_set_learning_rate</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_set_activation_function_hidden">
+        <refnamediv>
+          <refname>fann_set_activation_function_hidden</refname>
+          <refpurpose>Set the activation function for the hidden neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>void</type>
+            <methodname>fann_set_activation_function_hidden</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>int</type>
+              <parameter>activation_function</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_set_activation_function_hidden</function> sets the activation function for the hidden
+	    neurons to <parameter>activation_function</parameter>, which must be one of the supported activation
+	    functions.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_get_activation_function_hidden"><function>fann_get_activation_function_hidden</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_set_activation_function_output">
+        <refnamediv>
+          <refname>fann_set_activation_function_output</refname>
+          <refpurpose>Set the activation function for the output neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>void</type>
+            <methodname>fann_set_activation_function_output</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>int</type>
+              <parameter>activation_function</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_set_activation_function_output</function> sets the activation function for the output
+	    neurons to <parameter>activation_function</parameter>, which must be one of the supported activation
+	    functions.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_get_activation_function_output"><function>fann_get_activation_function_output</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_set_activation_steepness_hidden">
+        <refnamediv>
+          <refname>fann_set_activation_steepness_hidden</refname>
+          <refpurpose>Set the steepness of the activation function for the hidden neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>void</type>
+            <methodname>fann_set_activation_steepness_hidden</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>float</type>
+              <parameter>steepness</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_set_activation_steepness_hidden</function>sets the steepness of the activation function
+	    hidden neurons to <parameter>steepness</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_get_activation_steepness_hidden"><function>fann_get_activation_steepness_hidden</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+      <refentry id="function.fann_set_activation_steepness_output">
+        <refnamediv>
+          <refname>fann_set_activation_steepness_output</refname>
+          <refpurpose>Set the steepness of the activation function for the output neurons.</refpurpose>
+        </refnamediv>
+        <refsect1>
+          <title>Description</title>
+          <methodsynopsis>
+            <type>void</type>
+            <methodname>fann_set_activation_steepness_output</methodname>
+            <methodparam>
+              <type>resource</type>
+              <parameter>ann</parameter>
+            </methodparam>
+            <methodparam>
+              <type>float</type>
+              <parameter>steepness</parameter>
+            </methodparam>
+          </methodsynopsis>
+          <para>
+            <function>fann_set_activation_steepness_output</function> sets the steepness of the activation function
+	    output neurons to <parameter>steepness</parameter>.
+	  </para>
+          <para>
+	    See also <link linkend="function.fann_get_activation_steepness_output"><function>fann_get_activation_steepness_output</function></link>.
+	  </para>
+          <para>This function appears in FANN-PHP &gt;= 0.1.0.</para>
+        </refsect1>
+      </refentry>
+    </section>
+  </chapter>
+  <bibliography id="bibliography">
+    <title id="bibliography.title">Bibliography</title>
+    <biblioentry id="bib.nguyen_1990">
+      <abbrev id="bib.nguyen_1990.abbrev">Nguyen and Widrow, 1990</abbrev>
+      <title id="bib.nguyen_1990.title">Reinforcement Learning</title>
+      <author>
+        <firstname>Derrick</firstname>
+        <surname>Nguyen</surname>
+      </author>
+      <author>
+        <firstname>Bernard</firstname>
+        <surname>Widrow</surname>
+      </author>
+      <pubdate>1990</pubdate>
+      <publishername>Proc. IJCNN</publishername>
+      <volumenum>3</volumenum>
+      <pagenums>21-26</pagenums>
+      <releaseinfo>
+        <ulink url="http://www.cs.montana.edu/~clemens/nguyen-widrow.pdf">http://www.cs.montana.edu/~clemens/nguyen-widrow.pdf</ulink>
+      </releaseinfo>
+    </biblioentry>
+  </bibliography>
+</book>
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:1
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:"../../manual.ced"
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

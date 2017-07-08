@@ -1,6 +1,6 @@
 /*
 Fast Artificial Neural Network Library (fann)
-Copyright (C) 2003-2016 Steffen Nissen (steffen.fann@gmail.com)
+Copyright (C) 2003 Steffen Nissen (lukesky@diku.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -19,8 +19,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdio.h>
 
-#include "../include/fann/fann.h"
-
+#include "fann.h"
+//#define FIXEDFANN
 int main()
 {
 	fann_type *calc_out;
@@ -41,7 +41,7 @@ int main()
 	if(!ann)
 	{
 		printf("Error creating ann --- ABORTING.\n");
-		return -1;
+		return 0;
 	}
 
 	fann_print_connections(ann);
@@ -59,7 +59,7 @@ int main()
 	{
 		fann_reset_MSE(ann);
 		calc_out = fann_test(ann, data->input[i], data->output[i]);
-#ifdef FIXEDFANN
+/*#ifdef FIXEDFANN
 		printf("XOR test (%d, %d) -> %d, should be %d, difference=%f\n",
 			   data->input[i][0], data->input[i][1], calc_out[0], data->output[i][0],
 			   (float) fann_abs(calc_out[0] - data->output[i][0]) / fann_get_multiplier(ann));
@@ -69,11 +69,11 @@ int main()
 			printf("Test failed\n");
 			ret = -1;
 		}
-#else
+#else*/
 		printf("XOR test (%f, %f) -> %f, should be %f, difference=%f\n",
 			   data->input[i][0], data->input[i][1], calc_out[0], data->output[i][0],
 			   (float) fann_abs(calc_out[0] - data->output[i][0]));
-#endif
+//#endif
 	}
 
 	printf("Cleaning up.\n");

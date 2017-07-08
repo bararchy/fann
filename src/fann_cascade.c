@@ -1,6 +1,6 @@
 /*
   Fast Artificial Neural Network Library (fann)
-  Copyright (C) 2003-2016 Steffen Nissen (steffen.fann@gmail.com)
+  Copyright (C) 2003 Steffen Nissen (lukesky@diku.dk)
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -16,9 +16,9 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-
+#if 0
 #include "config.h"
-#include "fann/fann.h"
+#include "fann.h"
 #include "string.h"
 
 #ifndef FIXEDFANN
@@ -26,11 +26,49 @@
 /* #define CASCADE_DEBUG */
 /* #define CASCADE_DEBUG_FULL */
 
+
+/* Define cascade accessors */
+FANN_GET_SETP(unsigned int, cascade_params, total_connections_allocated)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_max_out_epochs)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_min_out_epochs)
+FANN_GET_SETP(float       , cascade_params, cascade_output_change_fraction)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_output_stagnation_epochs)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_activation_functions_count)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_activation_steepnesses_count)
+FANN_GET_SETP(unsigned int, cascade_params, total_neurons_allocated)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_num_candidate_groups)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_best_candidate)
+FANN_GET_SETP(fann_type   , cascade_params, cascade_weight_multiplier)
+FANN_GET_SETP(fann_type * , cascade_params, cascade_candidate_scores)
+FANN_GET_SETP(float       , cascade_params, cascade_candidate_change_fraction)
+FANN_GET_SETP(fann_type   , cascade_params, cascade_candidate_limit)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_max_cand_epochs)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_min_cand_epochs)
+FANN_GET_SETP(unsigned int, cascade_params, cascade_candidate_stagnation_epochs)
+
+FANN_GETP(enum fann_activationfunc_enum *, cascade_params, cascade_activation_functions)
+FANN_GETP(fann_type *, cascade_params, cascade_activation_steepnesses)
+
+FANN_GET_SET(unsigned int, num_output)
+
+/* Define general training accessors */
+FANN_GET_SETP(enum fann_train_enum, training_params, training_algorithm)
+FANN_GET_SETP(fann_type *, training_params, train_errors)
+FANN_GET_SETP(fann_callback_type, training_params, callback)
+FANN_GET_SETP(float, training_params, MSE_value)
+FANN_GET_SETP(unsigned int, training_params, num_bit_fail)
+
+/* Define RPROP training accessors */
+FANN_GET_SETP(unsigned int, rprop_params, sarprop_epoch)
+FANN_GET_SETP(fann_type *, rprop_params, prev_steps)
+FANN_GET_SETP(fann_type *, rprop_params, train_slopes)
+FANN_GET_SETP(fann_type *, rprop_params, prev_train_slopes)
+
 void fann_print_connections_raw(struct fann *ann)
 {
 	unsigned int i;
 
-	for(i = 0; i < ann->total_connections_allocated; i++)
+	for(i = 0; i < fann_get_total_connections_allocated(ann); i++)
 	{
 		if(i == ann->total_connections)
 		{
@@ -55,7 +93,7 @@ FANN_EXTERNAL void FANN_API fann_cascadetrain_on_data(struct fann *ann, struct f
 	unsigned int total_epochs = 0;
 	int desired_error_reached;
 
-	if(neurons_between_reports && ann->callback == NULL)
+	if(neurons_between_reports && fann_get_callback(ann) == NULL)
 	{
 		printf("Max neurons %3d. Desired error: %.6f\n", max_neurons, desired_error);
 	}
@@ -72,11 +110,11 @@ FANN_EXTERNAL void FANN_API fann_cascadetrain_on_data(struct fann *ann, struct f
 		   (i % neurons_between_reports == 0
 			|| i == max_neurons || i == 1 || desired_error_reached == 0))
 		{
-			if(ann->callback == NULL)
+			if(fann_get_callback(ann) == NULL)
 			{
 				printf
 					("Neurons     %3d. Current error: %.6f. Total error:%8.4f. Epochs %5d. Bit fail %3d",
-					 i-1, error, ann->MSE_value, total_epochs, ann->num_bit_fail);
+					 i-1, error, fann_get_MSE_value(ann), total_epochs, fann_get_num_bit_fail(ann));
 				if((ann->last_layer-2) != ann->first_layer)
 				{
 					printf(". candidate steepness %.2f. function %s", 
@@ -85,7 +123,7 @@ FANN_EXTERNAL void FANN_API fann_cascadetrain_on_data(struct fann *ann, struct f
 				}
 				printf("\n");
 			}
-			else if((*ann->callback) (ann, data, max_neurons, 
+			else if((*fann_get_callback(ann)) (ann, data, max_neurons, 
 				neurons_between_reports, desired_error, total_epochs) == -1) 
 			{
 				/* you can break the training by returning -1 */
@@ -112,7 +150,7 @@ FANN_EXTERNAL void FANN_API fann_cascadetrain_on_data(struct fann *ann, struct f
 	/* Train outputs one last time but without any desired error */
 	total_epochs += fann_train_outputs(ann, data, 0.0);
 
-	if(neurons_between_reports && ann->callback == NULL)
+	if(neurons_between_reports && fann_get_callback(ann) == NULL)
 	{
 		printf("Train outputs    Current error: %.6f. Epochs %6d\n", fann_get_MSE(ann),
 			   total_epochs);
@@ -146,8 +184,8 @@ int fann_train_outputs(struct fann *ann, struct fann_train_data *data, float des
 	float target_improvement = 0.0;
 	float backslide_improvement = -1.0e20f;
 	unsigned int i;
-	unsigned int max_epochs = ann->cascade_max_out_epochs;
-	unsigned int min_epochs = ann->cascade_min_out_epochs;
+	unsigned int max_epochs = fann_get_cascade_max_out_epochs(ann);
+	unsigned int min_epochs = fann_get_cascade_min_out_epochs(ann);
 	unsigned int stagnation = max_epochs;
 
 	/* TODO should perhaps not clear all arrays */
@@ -186,9 +224,9 @@ int fann_train_outputs(struct fann *ann, struct fann_train_data *data, float des
 		{
 			/*printf("error_improvement=%f, target_improvement=%f, backslide_improvement=%f, stagnation=%d\n", error_improvement, target_improvement, backslide_improvement, stagnation); */
 
-			target_improvement = error_improvement * (1.0f + ann->cascade_output_change_fraction);
-			backslide_improvement = error_improvement * (1.0f - ann->cascade_output_change_fraction);
-			stagnation = i + ann->cascade_output_stagnation_epochs;
+			target_improvement = error_improvement * (1.0f + fann_get_cascade_output_change_fraction(ann));
+			backslide_improvement = error_improvement * (1.0f - fann_get_cascade_output_change_fraction(ann));
+			stagnation = i + fann_get_cascade_output_stagnation_epochs(ann);
 		}
 
 		/* No improvement in allotted period, so quit */
@@ -214,16 +252,16 @@ float fann_train_outputs_epoch(struct fann *ann, struct fann_train_data *data)
 		fann_update_slopes_batch(ann, ann->last_layer - 1, ann->last_layer - 1);
 	}
 
-	switch (ann->training_algorithm)
+	switch (fann_get_training_algorithm(ann))
 	{
 		case FANN_TRAIN_RPROP:
 			fann_update_weights_irpropm(ann, (ann->last_layer - 1)->first_neuron->first_con,
 										ann->total_connections);
 			break;
 		case FANN_TRAIN_SARPROP:
-			fann_update_weights_sarprop(ann, ann->sarprop_epoch, (ann->last_layer - 1)->first_neuron->first_con,
+			fann_update_weights_sarprop(ann, fann_get_sarprop_epoch(ann), (ann->last_layer - 1)->first_neuron->first_con,
 										ann->total_connections);
-			++(ann->sarprop_epoch);
+			fann_set_sarprop_epoch(ann, fann_get_sarprop_epoch(ann) + 1);
 			break;
 		case FANN_TRAIN_QUICKPROP:
 			fann_update_weights_quickprop(ann, data->num_data,
@@ -263,30 +301,33 @@ int fann_reallocate_connections(struct fann *ann, unsigned int total_connections
 		return -1;
 	}
 
-	ann->train_slopes =
-		(fann_type *) realloc(ann->train_slopes, total_connections * sizeof(fann_type));
-	if(ann->train_slopes == NULL)
+	fann_set_train_slopes(ann, 
+		(fann_type *) realloc(fann_get_train_slopes(ann), total_connections * sizeof(fann_type)));
+	if(fann_get_train_slopes(ann) == NULL)
 	{
 		fann_error((struct fann_error *) ann, FANN_E_CANT_ALLOCATE_MEM);
 		return -1;
 	}
 
-	ann->prev_steps = (fann_type *) realloc(ann->prev_steps, total_connections * sizeof(fann_type));
-	if(ann->prev_steps == NULL)
+	fann_set_prev_steps(ann,
+		(fann_type *) realloc(fann_get_prev_steps(ann), 
+							  total_connections * sizeof(fann_type)));
+	if(fann_get_prev_steps(ann) == NULL)
 	{
 		fann_error((struct fann_error *) ann, FANN_E_CANT_ALLOCATE_MEM);
 		return -1;
 	}
 
-	ann->prev_train_slopes =
-		(fann_type *) realloc(ann->prev_train_slopes, total_connections * sizeof(fann_type));
-	if(ann->prev_train_slopes == NULL)
+	fann_set_prev_train_slopes(ann,
+		(fann_type *) realloc(fann_get_prev_train_slopes(ann), 
+							  total_connections * sizeof(fann_type)));
+	if(fann_get_prev_train_slopes(ann) == NULL)
 	{
 		fann_error((struct fann_error *) ann, FANN_E_CANT_ALLOCATE_MEM);
 		return -1;
 	}
 
-	ann->total_connections_allocated = total_connections;
+	fann_set_total_connections_allocated(ann, total_connections);
 
 	return 0;
 }
@@ -301,7 +342,7 @@ int fann_reallocate_neurons(struct fann *ann, unsigned int total_neurons)
 	neurons =
 		(struct fann_neuron *) realloc(ann->first_layer->first_neuron,
 									   total_neurons * sizeof(struct fann_neuron));
-	ann->total_neurons_allocated = total_neurons;
+	fann_set_total_neurons_allocated(ann, total_neurons);
 
 	if(neurons == NULL)
 	{
@@ -310,8 +351,10 @@ int fann_reallocate_neurons(struct fann *ann, unsigned int total_neurons)
 	}
 
 	/* Also allocate room for more train_errors */
-	ann->train_errors = (fann_type *) realloc(ann->train_errors, total_neurons * sizeof(fann_type));
-	if(ann->train_errors == NULL)
+	fann_set_train_errors(ann,
+		(fann_type *) realloc(fann_get_train_errors(ann), 
+							  total_neurons * sizeof(fann_type)));
+	if(fann_get_train_errors(ann) == NULL)
 	{
 		fann_error((struct fann_error *) ann, FANN_E_CANT_ALLOCATE_MEM);
 		return -1;
@@ -328,7 +371,7 @@ int fann_reallocate_neurons(struct fann *ann, unsigned int total_neurons)
 		/* Move pointers from layers to neurons */
 		for(layer_it = ann->first_layer; layer_it != ann->last_layer; layer_it++)
 		{
-			num_neurons = (unsigned int)(layer_it->last_neuron - layer_it->first_neuron);
+			num_neurons = layer_it->last_neuron - layer_it->first_neuron;
 			layer_it->first_neuron = neurons + num_neurons_so_far;
 			layer_it->last_neuron = layer_it->first_neuron + num_neurons;
 			num_neurons_so_far += num_neurons;
@@ -342,10 +385,10 @@ void initialize_candidate_weights(struct fann *ann, unsigned int first_con, unsi
 {
 	fann_type prev_step;
 	unsigned int i = 0;
-	unsigned int bias_weight = (unsigned int)(first_con + (ann->first_layer->last_neuron - ann->first_layer->first_neuron) - 1);
+	unsigned int bias_weight = first_con + (ann->first_layer->last_neuron - ann->first_layer->first_neuron) - 1;
 
-	if(ann->training_algorithm == FANN_TRAIN_RPROP)
-		prev_step = ann->rprop_delta_zero;
+	if(fann_get_training_algorithm(ann) == FANN_TRAIN_RPROP)
+		prev_step = fann_get_rprop_delta_zero(ann);
 	else
 		prev_step = 0;
 
@@ -356,9 +399,9 @@ void initialize_candidate_weights(struct fann *ann, unsigned int first_con, unsi
 		else
 			ann->weights[i] = fann_rand(0,scale_factor);
 					
-		ann->train_slopes[i] = 0;
-		ann->prev_steps[i] = prev_step;
-		ann->prev_train_slopes[i] = 0;
+		ann->rprop_params->train_slopes[i] = 0;
+		ann->rprop_params->prev_steps[i] = prev_step;
+		ann->rprop_params->prev_train_slopes[i] = 0;
 	}
 }
 
@@ -389,7 +432,7 @@ int fann_initialize_candidates(struct fann *ann)
 	/* First make sure that there is enough room, and if not then allocate a
 	 * bit more so that we do not need to allocate more room each time.
 	 */
-	if(num_neurons > ann->total_neurons_allocated)
+	if(num_neurons > fann_get_total_neurons_allocated(ann))
 	{
 		/* Then we need to allocate more neurons
 		 * Allocate half as many neurons as already exist (at least ten)
@@ -406,7 +449,7 @@ int fann_initialize_candidates(struct fann *ann)
 		}
 	}
 
-	if(num_connections > ann->total_connections_allocated)
+	if(num_connections > fann_get_total_connections_allocated(ann))
 	{
 		/* Then we need to allocate more connections
 		 * Allocate half as many connections as already exist
@@ -424,8 +467,9 @@ int fann_initialize_candidates(struct fann *ann)
 		}
 	}
 
-	/* Some code to do semi Widrow + Nguyen initialization */
-	scale_factor = (float) (2.0 * pow(0.7f * (float)num_hidden_neurons, 1.0f / (float) ann->num_input));
+	/* Some test code to do semi Widrow + Nguyen initialization */
+	scale_factor = (float) 2.0f*(pow((double) (0.7f * (double) num_hidden_neurons),
+				                (double) (1.0f / (double) ann->num_input)));
 	if(scale_factor > 8)
 		scale_factor = 8;
 	else if(scale_factor < 0.5)
@@ -437,11 +481,11 @@ int fann_initialize_candidates(struct fann *ann)
 	neurons = ann->first_layer->first_neuron;
 	candidate_index = first_candidate_neuron;
 
-	for(i = 0; i < ann->cascade_activation_functions_count; i++)
+	for(i = 0; i < fann_get_cascade_activation_functions_count(ann); i++)
 	{
-		for(j = 0; j < ann->cascade_activation_steepnesses_count; j++)
+		for(j = 0; j < fann_get_cascade_activation_steepnesses_count(ann); j++)
 		{
-			for(k = 0; k < ann->cascade_num_candidate_groups; k++)
+			for(k = 0; k < fann_get_cascade_num_candidate_groups(ann); k++)
 			{
 				/* TODO candidates should actually be created both in
 				 * the last layer before the output layer, and in a new layer.
@@ -450,9 +494,9 @@ int fann_initialize_candidates(struct fann *ann)
 				neurons[candidate_index].sum = 0;
 				
 				neurons[candidate_index].activation_function =
-					ann->cascade_activation_functions[i];
+					fann_get_cascade_activation_functions(ann)[i];
 				neurons[candidate_index].activation_steepness =
-					ann->cascade_activation_steepnesses[j];
+					fann_get_cascade_activation_steepnesses(ann)[j];
 				
 				neurons[candidate_index].first_con = connection_it;
 				connection_it += candidate_connections_in;
@@ -460,7 +504,7 @@ int fann_initialize_candidates(struct fann *ann)
 				/* We have no specific pointers to the output weights, but they are
 				 * available after last_con */
 				connection_it += candidate_connections_out;
-				ann->train_errors[candidate_index] = 0;
+				ann->training_params->train_errors[candidate_index] = 0;
 				initialize_candidate_weights(ann, neurons[candidate_index].first_con, neurons[candidate_index].last_con+candidate_connections_out, scale_factor);
 				candidate_index++;
 			}
@@ -470,7 +514,7 @@ int fann_initialize_candidates(struct fann *ann)
 	
 	/* Now randomize the weights and zero out the arrays that needs zeroing out.
 	 */
-	 /*
+#if 0
 #ifdef CASCADE_DEBUG_FULL
 	printf("random cand weight [%d ... %d]\n", first_candidate_connection, num_connections - 1);
 #endif
@@ -478,13 +522,13 @@ int fann_initialize_candidates(struct fann *ann)
 	for(i = first_candidate_connection; i < num_connections; i++)
 	{
 		
-		//ann->weights[i] = fann_random_weight();
+		/*ann->weights[i] = fann_random_weight();*/
 		ann->weights[i] = fann_rand(-2.0,2.0);
 		ann->train_slopes[i] = 0;
 		ann->prev_steps[i] = 0;
 		ann->prev_train_slopes[i] = initial_slope;
 	}
-	*/
+#endif
 
 	return 0;
 }
@@ -495,15 +539,15 @@ int fann_train_candidates(struct fann *ann, struct fann_train_data *data)
 	fann_type target_cand_score = 0.0;
 	fann_type backslide_cand_score = -1.0e20f;
 	unsigned int i;
-	unsigned int max_epochs = ann->cascade_max_cand_epochs;
-	unsigned int min_epochs = ann->cascade_min_cand_epochs;
+	unsigned int max_epochs = fann_get_cascade_max_cand_epochs(ann);
+	unsigned int min_epochs = fann_get_cascade_min_cand_epochs(ann);
 	unsigned int stagnation = max_epochs;
 
-	if(ann->cascade_candidate_scores == NULL)
+	if(fann_get_cascade_candidate_scores(ann) == NULL)
 	{
-		ann->cascade_candidate_scores =
-			(fann_type *) malloc(fann_get_cascade_num_candidates(ann) * sizeof(fann_type));
-		if(ann->cascade_candidate_scores == NULL)
+		fann_set_cascade_candidate_scores(ann,
+			(fann_type *) malloc(fann_get_cascade_num_candidates(ann) * sizeof(fann_type)));
+		if(fann_get_cascade_candidate_scores(ann) == NULL)
 		{
 			fann_error((struct fann_error *) ann, FANN_E_CANT_ALLOCATE_MEM);
 			return 0;
@@ -514,7 +558,7 @@ int fann_train_candidates(struct fann *ann, struct fann_train_data *data)
 	{
 		best_cand_score = fann_train_candidates_epoch(ann, data);
 
-		if(best_cand_score / ann->MSE_value > ann->cascade_candidate_limit)
+		if(best_cand_score / fann_get_MSE_value(ann) > fann_get_cascade_candidate_limit(ann))
 		{
 #ifdef CASCADE_DEBUG
 			printf("above candidate limit %f/%f > %f", best_cand_score, ann->MSE_value,
@@ -531,9 +575,9 @@ int fann_train_candidates(struct fann *ann, struct fann_train_data *data)
 			/* printf("best_cand_score=%f, target_cand_score=%f, backslide_cand_score=%f, stagnation=%d\n", best_cand_score, target_cand_score, backslide_cand_score, stagnation); */
 #endif
 
-			target_cand_score = best_cand_score * (1.0f + ann->cascade_candidate_change_fraction);
-			backslide_cand_score = best_cand_score * (1.0f - ann->cascade_candidate_change_fraction);
-			stagnation = i + ann->cascade_candidate_stagnation_epochs;
+			target_cand_score = best_cand_score * (1.0f + fann_get_cascade_candidate_change_fraction(ann));
+			backslide_cand_score = best_cand_score * (1.0f - fann_get_cascade_candidate_change_fraction(ann));
+			stagnation = i + fann_get_cascade_candidate_stagnation_epochs(ann);
 		}
 
 		/* No improvement in allotted period, so quit */
@@ -564,11 +608,11 @@ void fann_update_candidate_slopes(struct fann *ann)
 	unsigned int num_output = ann->num_output;
 	fann_type max_sum, cand_sum, activation, derived, error_value, diff, cand_score;
 	fann_type *weights, *cand_out_weights, *cand_slopes, *cand_out_slopes;
-	fann_type *output_train_errors = ann->train_errors + (ann->total_neurons - ann->num_output);
+	fann_type *output_train_errors = fann_get_train_errors(ann) + (ann->total_neurons - ann->num_output);
 
 	for(cand_it = first_cand; cand_it < last_cand; cand_it++)
 	{
-		cand_score = ann->cascade_candidate_scores[cand_it - first_cand];
+		cand_score = fann_get_cascade_candidate_scores(ann)[cand_it - first_cand];
 		error_value = 0.0;
 
 		/* code more or less stolen from fann_run to fast forward pass
@@ -627,7 +671,7 @@ void fann_update_candidate_slopes(struct fann *ann)
 		 */
 		cand_out_weights = weights + num_connections;
 
-		cand_out_slopes = ann->train_slopes + cand_it->first_con + num_connections;
+		cand_out_slopes = fann_get_train_slopes(ann) + cand_it->first_con + num_connections;
 		for(j = 0; j < num_output; j++)
 		{
 			diff = (activation * cand_out_weights[j]) - output_train_errors[j];
@@ -649,10 +693,10 @@ void fann_update_candidate_slopes(struct fann *ann)
 #endif
 		}
 
-		ann->cascade_candidate_scores[cand_it - first_cand] = cand_score;
+		ann->cascade_params->cascade_candidate_scores[cand_it - first_cand] = cand_score;
 		error_value *= derived;
 
-		cand_slopes = ann->train_slopes + cand_it->first_con;
+		cand_slopes = ann->rprop_params->train_slopes + cand_it->first_con;
 		for(i = 0; i < num_connections; i++)
 		{
 			cand_slopes[i] -= error_value * neurons[i].value;
@@ -665,7 +709,7 @@ void fann_update_candidate_weights(struct fann *ann, unsigned int num_data)
 	struct fann_neuron *first_cand = (ann->last_layer - 1)->last_neuron + 1;	/* there is an empty neuron between the actual neurons and the candidate neuron */
 	struct fann_neuron *last_cand = first_cand + fann_get_cascade_num_candidates(ann) - 1;
 
-	switch (ann->training_algorithm)
+	switch (fann_get_training_algorithm(ann))
 	{
 		case FANN_TRAIN_RPROP:
 			fann_update_weights_irpropm(ann, first_cand->first_con,
@@ -673,7 +717,7 @@ void fann_update_candidate_weights(struct fann *ann, unsigned int num_data)
 			break;
 		case FANN_TRAIN_SARPROP:
 			/* TODO: increase epoch? */
-			fann_update_weights_sarprop(ann, ann->sarprop_epoch, first_cand->first_con,
+			fann_update_weights_sarprop(ann, fann_get_sarprop_epoch(ann), first_cand->first_con,
 										last_cand->last_con + ann->num_output);
 			break;
 		case FANN_TRAIN_QUICKPROP:
@@ -693,13 +737,13 @@ fann_type fann_train_candidates_epoch(struct fann *ann, struct fann_train_data *
 	unsigned int best_candidate;
 	fann_type best_score;
 	unsigned int num_cand = fann_get_cascade_num_candidates(ann);
-	fann_type *output_train_errors = ann->train_errors + (ann->total_neurons - ann->num_output);
+	fann_type *output_train_errors = fann_get_train_errors(ann) + (ann->total_neurons - ann->num_output);
 	struct fann_neuron *output_neurons = (ann->last_layer - 1)->first_neuron;
 
 	for(i = 0; i < num_cand; i++)
 	{
 		/* The ann->MSE_value is actually the sum squared error */
-		ann->cascade_candidate_scores[i] = ann->MSE_value;
+		ann->cascade_params->cascade_candidate_scores[i] = fann_get_MSE_value(ann);
 	}
 	/*printf("start score: %f\n", ann->MSE_value); */
 
@@ -754,7 +798,7 @@ fann_type fann_train_candidates_epoch(struct fann *ann, struct fann_train_data *
 
 	/* find the best candidate score */
 	best_candidate = 0;
-	best_score = ann->cascade_candidate_scores[best_candidate];
+	best_score = fann_get_cascade_candidate_scores(ann)[best_candidate];
 	for(i = 1; i < num_cand; i++)
 	{
 		/*struct fann_neuron *cand = ann->first_layer->first_neuron + ann->total_neurons + 1 + i;
@@ -762,14 +806,14 @@ fann_type fann_train_candidates_epoch(struct fann *ann, struct fann_train_data *
 		 * i, FANN_ACTIVATIONFUNC_NAMES[cand->activation_function], 
 		 * cand->activation_steepness, ann->cascade_candidate_scores[i]); */
 
-		if(ann->cascade_candidate_scores[i] > best_score)
+		if(fann_get_cascade_candidate_scores(ann)[i] > best_score)
 		{
 			best_candidate = i;
-			best_score = ann->cascade_candidate_scores[best_candidate];
+			best_score = fann_get_cascade_candidate_scores(ann)[best_candidate];
 		}
 	}
 
-	ann->cascade_best_candidate = ann->total_neurons + best_candidate + 1;
+	fann_set_cascade_best_candidate(ann, ann->total_neurons + best_candidate + 1);
 #ifdef CASCADE_DEBUG
 	printf("Best candidate[%d]: with score %f, real score: %f\n", best_candidate,
 		   ann->MSE_value - best_score, best_score);
@@ -778,11 +822,11 @@ fann_type fann_train_candidates_epoch(struct fann *ann, struct fann_train_data *
 	return best_score;
 }
 
-/* add a layer at the position pointed to by *layer */
+/* add a layer ad the position pointed to by *layer */
 struct fann_layer *fann_add_layer(struct fann *ann, struct fann_layer *layer)
 {
-	int layer_pos = (int)(layer - ann->first_layer);
-	int num_layers = (int)(ann->last_layer - ann->first_layer + 1);
+	int layer_pos = layer - ann->first_layer;
+	int num_layers = ann->last_layer - ann->first_layer + 1;
 	int i;
 
 	/* allocate the layer */
@@ -842,8 +886,9 @@ void fann_set_shortcut_connections(struct fann *ann)
 
 void fann_add_candidate_neuron(struct fann *ann, struct fann_layer *layer)
 {
-	unsigned int num_connections_in = (unsigned int)(layer->first_neuron - ann->first_layer->first_neuron);
-	unsigned int num_connections_out = (unsigned int)((ann->last_layer - 1)->last_neuron - (layer + 1)->first_neuron);
+	unsigned int num_connections_in = layer->first_neuron - ann->first_layer->first_neuron;
+	unsigned int num_connections_out =
+		(ann->last_layer - 1)->last_neuron - (layer + 1)->first_neuron;
 	unsigned int num_connections_move = num_connections_out + num_connections_in;
 
 	unsigned int candidate_con, candidate_output_weight;
@@ -883,7 +928,7 @@ void fann_add_candidate_neuron(struct fann *ann, struct fann_layer *layer)
 		   num_connections_out);
 #endif
 
-	candidate = ann->first_layer->first_neuron + ann->cascade_best_candidate;
+	candidate = ann->first_layer->first_neuron + fann_get_cascade_best_candidate(ann);
 
 	/* the output weights for the candidates are located after the input weights */
 	candidate_output_weight = candidate->last_con;
@@ -918,7 +963,7 @@ void fann_add_candidate_neuron(struct fann *ann, struct fann_layer *layer)
 
 		/* set the new weight to the newly allocated neuron */
 		ann->weights[neuron_it->last_con - 1] =
-			(ann->weights[candidate_output_weight]) * ann->cascade_weight_multiplier;
+			(ann->weights[candidate_output_weight]) * fann_get_cascade_weight_multiplier(ann);
 		candidate_output_weight++;
 	}
 
@@ -973,25 +1018,11 @@ void fann_install_candidate(struct fann *ann)
 
 FANN_EXTERNAL unsigned int FANN_API fann_get_cascade_num_candidates(struct fann *ann)
 {
-	return ann->cascade_activation_functions_count *
-		ann->cascade_activation_steepnesses_count *
-		ann->cascade_num_candidate_groups;
+	return fann_get_cascade_activation_functions_count(ann) *
+		fann_get_cascade_activation_steepnesses_count(ann) *
+		fann_get_cascade_num_candidate_groups(ann);
 }
 
-FANN_GET_SET(float, cascade_output_change_fraction)
-FANN_GET_SET(unsigned int, cascade_output_stagnation_epochs)
-FANN_GET_SET(float, cascade_candidate_change_fraction)
-FANN_GET_SET(unsigned int, cascade_candidate_stagnation_epochs)
-FANN_GET_SET(unsigned int, cascade_num_candidate_groups)
-FANN_GET_SET(fann_type, cascade_weight_multiplier)
-FANN_GET_SET(fann_type, cascade_candidate_limit)
-FANN_GET_SET(unsigned int, cascade_max_out_epochs)
-FANN_GET_SET(unsigned int, cascade_max_cand_epochs)
-FANN_GET_SET(unsigned int, cascade_min_out_epochs)
-FANN_GET_SET(unsigned int, cascade_min_cand_epochs)
-
-FANN_GET(unsigned int, cascade_activation_functions_count)
-FANN_GET(enum fann_activationfunc_enum *, cascade_activation_functions)
 
 FANN_EXTERNAL void FANN_API fann_set_cascade_activation_functions(struct fann *ann,
 														 enum fann_activationfunc_enum *
@@ -999,27 +1030,27 @@ FANN_EXTERNAL void FANN_API fann_set_cascade_activation_functions(struct fann *a
 														 unsigned int 
 														 cascade_activation_functions_count)
 {
-	if(ann->cascade_activation_functions_count != cascade_activation_functions_count)
+	if(fann_get_cascade_activation_functions_count(ann) != cascade_activation_functions_count)
 	{
-		ann->cascade_activation_functions_count = cascade_activation_functions_count;
+		fann_set_cascade_activation_functions_count(ann, cascade_activation_functions_count);
 		
 		/* reallocate mem */
-		ann->cascade_activation_functions = 
-			(enum fann_activationfunc_enum *)realloc(ann->cascade_activation_functions, 
-			ann->cascade_activation_functions_count * sizeof(enum fann_activationfunc_enum));
-		if(ann->cascade_activation_functions == NULL)
+		ann->cascade_params->cascade_activation_functions = 
+			(enum fann_activationfunc_enum *)realloc(ann->cascade_params->cascade_activation_functions, 
+			fann_get_cascade_activation_functions_count(ann) * sizeof(enum fann_activationfunc_enum));
+		if(fann_get_cascade_activation_functions(ann) == NULL)
 		{
 			fann_error((struct fann_error*)ann, FANN_E_CANT_ALLOCATE_MEM);
 			return;
 		}
 	}
 	
-	memmove(ann->cascade_activation_functions, cascade_activation_functions, 
-		ann->cascade_activation_functions_count * sizeof(enum fann_activationfunc_enum));
+	memmove(
+		ann->cascade_params->cascade_activation_functions, 
+		cascade_activation_functions, 
+		fann_get_cascade_activation_functions_count(ann) * sizeof(enum fann_activationfunc_enum));
 }
 
-FANN_GET(unsigned int, cascade_activation_steepnesses_count)
-FANN_GET(fann_type *, cascade_activation_steepnesses)
 
 FANN_EXTERNAL void FANN_API fann_set_cascade_activation_steepnesses(struct fann *ann,
 														   fann_type *
@@ -1027,21 +1058,29 @@ FANN_EXTERNAL void FANN_API fann_set_cascade_activation_steepnesses(struct fann 
 														   unsigned int 
 														   cascade_activation_steepnesses_count)
 {
-	if(ann->cascade_activation_steepnesses_count != cascade_activation_steepnesses_count)
+	if(fann_get_cascade_activation_steepnesses_count(ann) != cascade_activation_steepnesses_count)
 	{
-		ann->cascade_activation_steepnesses_count = cascade_activation_steepnesses_count;
+		fann_set_cascade_activation_steepnesses_count(ann, cascade_activation_steepnesses_count);
 		
 		/* reallocate mem */
-		ann->cascade_activation_steepnesses = 
-			(fann_type *)realloc(ann->cascade_activation_steepnesses, 
-			ann->cascade_activation_steepnesses_count * sizeof(fann_type));
-		if(ann->cascade_activation_steepnesses == NULL)
+		ann->cascade_params->cascade_activation_steepnesses = 
+			(fann_type *)realloc(
+				ann->cascade_params->cascade_activation_steepnesses, 
+				fann_get_cascade_activation_steepnesses_count(ann) * sizeof(fann_type));
+		if(ann->cascade_params->cascade_activation_steepnesses == NULL)
 		{
 			fann_error((struct fann_error*)ann, FANN_E_CANT_ALLOCATE_MEM);
 			return;
 		}
 	}
 	
-	memmove(ann->cascade_activation_steepnesses, cascade_activation_steepnesses, 
-		ann->cascade_activation_steepnesses_count * sizeof(fann_type));
+	memmove(
+		ann->cascade_params->cascade_activation_steepnesses, 
+		cascade_activation_steepnesses, 
+		fann_get_cascade_activation_steepnesses_count(ann) * sizeof(fann_type));
 }
+#endif
+
+/*
+ * vim: ts=2 smarttab smartindent shiftwidth=2 nowrap
+ */

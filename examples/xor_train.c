@@ -1,6 +1,6 @@
 /*
 Fast Artificial Neural Network Library (fann)
-Copyright (C) 2003-2016 Steffen Nissen (steffen.fann@gmail.com)
+Copyright (C) 2003 Steffen Nissen (lukesky@diku.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -19,11 +19,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <stdio.h>
 
-#include "../include/fann/fann.h"
+#include "fann.h"
+
 
 int FANN_API test_callback(struct fann *ann, struct fann_train_data *train,
-	unsigned int max_epochs, unsigned int epochs_between_reports, 
-	float desired_error, unsigned int epochs)
+		unsigned int max_epochs, unsigned int epochs_between_reports, 
+		float desired_error, unsigned int epochs)
 {
 	printf("Epochs     %8d. MSE: %.5f. Desired-MSE: %.5f\n", epochs, fann_get_MSE(ann), desired_error);
 	return 0;
@@ -55,14 +56,19 @@ int main()
 
 	fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
 	fann_set_activation_function_output(ann, FANN_SIGMOID_SYMMETRIC);
-
 	fann_set_train_stop_function(ann, FANN_STOPFUNC_BIT);
 	fann_set_bit_fail_limit(ann, 0.01f);
 
+#if 1 && 0
+	fann_set_training_algorithm(ann, FANN_TRAIN_BATCH);
+#else
 	fann_set_training_algorithm(ann, FANN_TRAIN_RPROP);
+#endif
 
 	fann_init_weights(ann, data);
-	
+	/*fann_randomize_weights(ann,0,1);*/
+
+	/*fann_print_parameters(ann);*/
 	printf("Training network.\n");
 	fann_train_on_data(ann, data, max_epochs, epochs_between_reports, desired_error);
 
@@ -72,8 +78,8 @@ int main()
 	{
 		calc_out = fann_run(ann, data->input[i]);
 		printf("XOR test (%f,%f) -> %f, should be %f, difference=%f\n",
-			   data->input[i][0], data->input[i][1], calc_out[0], data->output[i][0],
-			   fann_abs(calc_out[0] - data->output[i][0]));
+				data->input[i][0], data->input[i][1], calc_out[0], data->output[i][0],
+				fann_abs(calc_out[0] - data->output[i][0]));
 	}
 
 	printf("Saving network.\n");
@@ -89,3 +95,7 @@ int main()
 
 	return 0;
 }
+
+/*
+ * vim: ts=2 smarttab smartindent shiftwidth=2 nowrap noet
+ */

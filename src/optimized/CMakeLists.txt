@@ -1,0 +1,10 @@
+ADD_SUBDIRECTORY( scalar ) 
+
+if (ENABLE_BLAS)
+ADD_SUBDIRECTORY( blas )
+endif (ENABLE_BLAS)
+
+if (ENABLE_SSE)
+ADD_SUBDIRECTORY( sse ) 
+endif (ENABLE_SSE)
+

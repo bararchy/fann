@@ -1,6 +1,6 @@
 /*
 Fast Artificial Neural Network Library (fann)
-Copyright (C) 2003-2016 Steffen Nissen (steffen.fann@gmail.com)
+Copyright (C) 2003 Steffen Nissen (lukesky@diku.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA02111-1307USA
 
 #include <stdio.h>
 
-#include "../include/fann/fann.h"
+#include "fann.h"
 
 int main()
 {
@@ -31,10 +31,10 @@ int main()
 
 	float momentum;
 
-	train_data = fann_read_train_from_file("../../datasets/robot.train");
-	test_data = fann_read_train_from_file("../../datasets/robot.test");
+	train_data = fann_read_train_from_file("../benchmarks/datasets/robot.train");
+	test_data = fann_read_train_from_file("../benchmarks/datasets/robot.test");
 
-	for ( momentum = 0.0f; momentum < 0.7f; momentum += 0.1f )
+	for ( momentum = 0.0; momentum < 0.7; momentum += 0.1 )
 	{
 		printf("============= momentum = %f =============\n", momentum);
 

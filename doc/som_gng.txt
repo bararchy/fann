@@ -1,0 +1,99 @@
+Section: Self-Organizing Maps and Growing Neural Gas
+
+  This section will briefly explain usage of the Self-Organizing Map and Growing
+Neural Gas algorithms.  Unlike traditional neural networks, these learning
+algorithms are used in an <em>unsupervised</em> fashion.  That is, they learn
+statistical properties of the underlying data, but are not provided labels if
+used, for example, for a classification problem.  The main usage for which
+these networks were developed are data visualization and clustering.
+
+Topic: Algorithmic Overview
+
+  Self-Organizing Maps (SOM) is an unsupervised learning method that uses vector
+quantization to allow visualization and clustering of data.  It is
+unsupervised because the only input (besides the parameters of the algorithm)
+is the data itself.  In a classification problem, for example, the labels for each
+data point are not available.  One interesting property of the resulting
+maps is that it is topographically ordered, that is neurons that are closer
+to each other are more similar than more distant ones.  This makes them useful
+for visualization.
+
+  The simplest form of SOM consists of a two dimensional rectangular or hexagonal 
+grid of neurons, each of which represents a point in an N dimensional space.  The dimensionality of 
+this point is the same as the input data.  Upon creation, each neuron is initialized 
+to a random point.  After training, the training data is projected onto this
+two dimensional neuronal network, with points in the data space that occur
+more frequently being represented by more nodes.
+
+  The simplest SOM works like so: For each training data, a node from the
+existing network that is closest (according to some distance measure, in FANN
+Euclidean distance) is assigned as the winning node.  This node's vector
+is then made closer to the training point by some fraction, determined by the 
+learning rate.  In addition, a neighborhood function that  determines the
+winning node's neighbors is given.  These neighboring nodes are then modified
+to be closer to the training data point as well, but by a lesser amoung.
+Nodes that are further from the winning node are changed less than those that
+are closer.
+
+  There are several parameters for the SOM: The width and height (number of
+nodes in each direction), topology (hexagonal versus rectangular),
+neighborhood function (gaussian or linear), the function determining the decay 
+of the learning rate (linear or inverse), and the starting learning rate.
+
+  In SOMs, the network to be trained is fixed throughout.  There have been 
+several dynamic variants where the new nodes are added or deleted based on the error
+characteristics of the nodes and network.  One such variant, called Growing
+Neural Gas (GNG), has been implemented.  This variant adds and deletes nodes based on the
+local and global error characteristics.  See the reference documents for a 
+description.  The GNG algorithm has several important parameters, including
+the maximum number of nodes to add, the maximum age of a node before it is
+deleted, and scaling factors for the reduction of error of nodes that are
+moved.  See the gng_params structure for a complete listing of modifiable
+parameters.
+
+Topic: Example
+
+  Using the SOM or GNG algorithm is extremely similar to usage of normal
+backprop-type neural networks.  In fact, in many cases the only difference will
+be the creation of the network.  As such, it would be advisable to read 
+the documentation and tutorials on the FANN website.  Here is an example:
+
+  In order to create a SOM, a fann_create function is called similar to
+regular neural networks:
+
+   struct fann *ann = fann_create_som(width, height, num_dimensions);
+
+  Parameters can be changed in various ways, one of them being modifying the
+internal parameters of the fann structure:
+
+   ann->som_params->som_topology = FANN_SOM_TOPOLOGY_HEXAGONAL;
+   ann->som_params->som_neighborhood = FANN_SOM_NEIGHBORHOOD_DISTANCE;
+   ann->som_params->som_learning_decay = FANN_SOM_LEARNING_DECAY_LINEAR;
+   ann->som_params->som_learning_rate = 0.01;
+
+  The weights (or vector inside the neurons) are automatically initialized
+randomly, but can be initialized using training data like so:
+
+   struct fann_train_data *data = fann_read_train_from_file("som_train.data");
+   fann_init_weights_som(ann, data);
+
+  In order to train the network on a file, the same method as normal networks
+can be used:
+
+   fann_train_on_file(ann, "som_train.data", max_epochs, epochs_between_reports, desired_error);
+
+  Finally, don't forget to destroy the network!
+
+   fann_destroy(ann);
+
+Topic: Further Reading
+
+  The following references are good for descriptions and theory of the
+algorithms:  
+
+  Kohonen, T, "The Self-Organizing map", proceedings of IEEE, 78:1464-1480, 1990.
+  B. Fritzke, " A growing neural gas network learns topologies," Adv ances in Neural Inform ation Processing Systems 7 (NIPS'94), MIT Press, C ambridge, MA, pp.625-632, 1995.
+
+  Advice on usage of the SOM algorithm, including setting of parameters and
+training, can be found in the SOM_PAK documentation:
+  http://www.cis.hut.fi/research/som_pak/som_doc.ps

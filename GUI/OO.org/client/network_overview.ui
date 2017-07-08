@@ -1,0 +1,228 @@
+<ui version="4.0" >
+ <class>NetworkOverview</class>
+ <widget class="QWidget" name="NetworkOverview" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>328</width>
+    <height>341</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" >
+   <property name="margin" >
+    <number>9</number>
+   </property>
+   <property name="spacing" >
+    <number>6</number>
+   </property>
+   <item row="4" column="0" colspan="2" >
+    <widget class="QLabel" name="label_16" >
+     <property name="text" >
+      <string>Neurons per layer</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3" colspan="2" >
+    <widget class="QLabel" name="networkTypeLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2" >
+    <widget class="QLabel" name="label_14" >
+     <property name="text" >
+      <string>Connection rate</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0" colspan="2" >
+    <widget class="QLabel" name="label_20" >
+     <property name="text" >
+      <string>Input neurons</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" >
+    <widget class="QLabel" name="label_17" >
+     <property name="text" >
+      <string>Bias per layer</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="2" colspan="2" >
+    <widget class="QPushButton" name="graphButton" >
+     <property name="enabled" >
+      <bool>false</bool>
+     </property>
+     <property name="text" >
+      <string>Graph</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="3" colspan="2" >
+    <widget class="QLabel" name="outputNeuronsLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="2" >
+    <widget class="QLabel" name="label_18" >
+     <property name="text" >
+      <string>Total neurons </string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="13" column="4" >
+    <widget class="QPushButton" name="detailsButton" >
+     <property name="text" >
+      <string>Details</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2" >
+    <widget class="QLabel" name="label_15" >
+     <property name="text" >
+      <string>Layers</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="3" colspan="2" >
+    <widget class="QLabel" name="biasLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="3" colspan="2" >
+    <widget class="QLabel" name="totalConnectionsLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>131</width>
+       <height>25</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="3" colspan="2" >
+    <widget class="QLabel" name="layersNumberLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="3" colspan="2" >
+    <widget class="QLabel" name="inputNeuronsLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="3" colspan="2" >
+    <widget class="QLabel" name="totalNeuronsLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2" >
+    <widget class="QLabel" name="label_19" >
+     <property name="text" >
+      <string>Total connections</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="2" >
+    <widget class="QLabel" name="label_21" >
+     <property name="text" >
+      <string>Output neurons</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2" >
+    <widget class="QLabel" name="label_13" >
+     <property name="text" >
+      <string>Type</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3" colspan="2" >
+    <widget class="QLabel" name="connectionRateLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="4" column="3" colspan="2" >
+    <widget class="QLabel" name="neuronsLabel" >
+     <property name="text" >
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1" >
+    <widget class="QPushButton" name="weightsButton" >
+     <property name="text" >
+      <string>Weight chart</string>
+     </property>
+    </widget>
+   </item>
+   <item rowspan="2" row="11" column="0" colspan="5" >
+    <spacer>
+     <property name="orientation" >
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" >
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,19 @@
+At long last, I have finished restoring the recurrent files. Thank you all for your patience! The files implementing recurrent networks include fann_recurrent.c, fann_recurrent.h, and fann_basic_fully_recurrent.c. There have also been a few additions to other files to better support these networks. 
+
+I have determined that most of the problems/frustrations I've had this summer stem from my choice of compilers and this choice requiring that I have an intimate knowledge of some of the new codes. You see, I decided to use Cygwin and Visual Studio, both of which have incompatibilities with straight-up Linux compilers. Hence, every time I downloaded new source I had to reconfigure it so that I could use Visual Studio and then Cygwin. So, I had to understand your new code as you uploaded it, which was mildly frustrating, but fruitful. Here are some workarounds I had to use for this final build -- I did not want to mess up anyone's hard work:
+
++ I could not get dlfcn to work in Cygwin, and it is downright not supported in Visual Studio without a third-party library. The (current) workaround for this is to manually insert the constructor function pointer yourself.
++ I had one particularly hard to track bug where the library was built with one #include "fann.h" and the examples (in the examples directory) actually referred to a second #include "fann.h" in which 'struct fann' was defined differently! Symptoms of this include stack bounds errors and values being modified in different regions of the 'fann' structure than intended. The workaround was to #include "../src/include/fann.h" in the examples directory so that I could be explicit about the path.
+
+
+I have included four easy-to-follow examples which showcase all of the recurrent functions. These examples were written to verify that the functions work, and you can clearly see that they do by running these and verifying the answers manually (if you wish). Hence, these will make great CUnit test cases! (Find them in the /examples directory.)
+
+[b]recurrent_basic_test.c[/b] - Creates a random recurrent network, displays the connections, and displays parameters.
+[b]recurrent_unrolled_test.c[/b] - Creates an unrolled recurrent network out to a random time era. Any recurrent network can be converted to a feedforward network (for a given time step), and this test performs this! Note that the final few (random) neurons are the biases, and so they do not have a repeating pattern.
+[b]recurrent_hopfield_test.c[/b] - Here, we create a recurrent Hopfield network, train it, and show that it works via two input files and random test cases.
+[b]recurrent_rtrl_test.c[/b] - Here, we first verify that we can run the network forward one time step, then we verify that MSEs are computed correctly. Finally (requiring enabling) you can see the in-progress RTRL algorithm.
+
+I have submitted documentation regarding the internal layout of the recurrent networks. I actually had a chance on this rewrite to make a better internal structure, and so I have implemented that this round. I believe that the internal structure is rather elegant, using layer->inputs/outputs for the total inputs/outputs to the layer (i.e. inputs being all inputs + bias, and outputs being all the neurons in the layer) whereas the ann->inputs/outputs are the total from the network itself (i.e. the input lines and only those neurons which output values). I implemented the "input line" structure, so the "input layer" is now not a separate layer, but those inputs are fully connected to all other neurons regardless.
+
+
+Enjoy!

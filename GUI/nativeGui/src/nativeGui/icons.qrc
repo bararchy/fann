@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/icons_16x16" >
+        <file>images/16x16/exit.png</file>
+        <file>images/16x16/package_edutainment.png</file>
+        <file>images/16x16/package_utilities.png</file>
+    </qresource>
+    <qresource prefix="/icons_32x32" >
+        <file>images/32x32/apply.png</file>
+        <file>images/32x32/fileopen.png</file>
+        <file>images/32x32/krec.png</file>
+        <file>images/32x32/noatun.png</file>
+        <file>images/32x32/package_edutainment.png</file>
+        <file>images/32x32/package_utilities.png</file>
+        <file>images/32x32/viewmag+.png</file>
+        <file>images/32x32/viewmag-.png</file>
+    </qresource>
+</RCC>

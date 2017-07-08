@@ -1,0 +1,70 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{2ea35644-480d-46b7-9e09-37b1239a734f}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Projects Include="cascade_train.cbproj">
+      <Dependencies>floatfann.cbproj</Dependencies>
+    </Projects>
+    <Projects Include="floatfann.cbproj" />
+    <Projects Include="xor_train.cbproj">
+      <Dependencies>floatfann.cbproj</Dependencies>
+    </Projects>
+    <Projects Include="xor_train_mimo.cbproj">
+      <Dependencies>floatfann.cbproj</Dependencies>
+    </Projects>
+  </ItemGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+<BorlandProject xmlns=""><Default.Personality></Default.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="floatfann">
+    <MSBuild Projects="floatfann.cbproj" Targets="" />
+  </Target>
+  <Target Name="floatfann:Clean">
+    <MSBuild Projects="floatfann.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="floatfann:Make">
+    <MSBuild Projects="floatfann.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="xor_train" DependsOnTargets="floatfann">
+    <MSBuild Projects="xor_train.cbproj" Targets="" />
+  </Target>
+  <Target Name="xor_train:Clean" DependsOnTargets="floatfann:Clean">
+    <MSBuild Projects="xor_train.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="xor_train:Make" DependsOnTargets="floatfann:Make">
+    <MSBuild Projects="xor_train.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="xor_train_mimo" DependsOnTargets="floatfann">
+    <MSBuild Projects="xor_train_mimo.cbproj" Targets="" />
+  </Target>
+  <Target Name="xor_train_mimo:Clean" DependsOnTargets="floatfann:Clean">
+    <MSBuild Projects="xor_train_mimo.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="xor_train_mimo:Make" DependsOnTargets="floatfann:Make">
+    <MSBuild Projects="xor_train_mimo.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="cascade_train" DependsOnTargets="floatfann">
+    <MSBuild Projects="cascade_train.cbproj" Targets="" />
+  </Target>
+  <Target Name="cascade_train:Clean" DependsOnTargets="floatfann:Clean">
+    <MSBuild Projects="cascade_train.cbproj" Targets="Clean" />
+  </Target>
+  <Target Name="cascade_train:Make" DependsOnTargets="floatfann:Make">
+    <MSBuild Projects="cascade_train.cbproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="floatfann;xor_train;xor_train_mimo;cascade_train" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="floatfann:Clean;xor_train:Clean;xor_train_mimo:Clean;cascade_train:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="floatfann:Make;xor_train:Make;xor_train_mimo:Make;cascade_train:Make" />
+  </Target>
+  <Import Condition="Exists('$(MSBuildBinPath)\Borland.Group.Targets')" Project="$(MSBuildBinPath)\Borland.Group.Targets" />
+</Project>

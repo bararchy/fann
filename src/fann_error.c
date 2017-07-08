@@ -1,6 +1,6 @@
 /*
   Fast Artificial Neural Network Library (fann)
-  Copyright (C) 2003-2016 Steffen Nissen (steffen.fann@gmail.com)
+  Copyright (C) 2003 Steffen Nissen (lukesky@diku.dk)
   
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,29 +21,16 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <limits.h>
 
 #include "config.h"
-#include "fann/fann.h"
+#include "fann.h"
 
 #ifdef _MSC_VER
 #define vsnprintf _vsnprintf
 #define snprintf _snprintf
 #endif
 
-/* define path max if not defined */
-#if defined(_WIN32) && !defined(__MINGW32__)
-#define PATH_MAX _MAX_PATH
-#endif
-#ifndef PATH_MAX
-#ifdef _POSIX_PATH_MAX
-#define PATH_MAX _POSIX_PATH_MAX
-#else
-#define PATH_MAX 4096
-#endif
-#endif
-
-FANN_EXTERNAL FILE * FANN_API fann_default_error_log = (FILE *)-1;
+FILE * fann_default_error_log = (FILE *)-1;
 
 /* resets the last error number
  */
@@ -68,28 +55,6 @@ FANN_EXTERNAL enum fann_errno_enum FANN_API fann_get_errno(struct fann_error *er
 	return errdat->errno_f;
 }
 
-/* returns the last errstr
- */
-FANN_EXTERNAL char *FANN_API fann_get_errstr(struct fann_error *errdat)
-{
-	char *errstr = errdat->errstr;
-
-	fann_reset_errno(errdat);
-	fann_reset_errstr(errdat);
-
-	return errstr;
-}
-
-/* change where errors are logged to
- */
-FANN_EXTERNAL void FANN_API fann_set_error_log(struct fann_error *errdat, FILE * log_file)
-{
-	if(errdat == NULL)
-		fann_default_error_log = log_file;
-	else
-		errdat->error_log = log_file;
-}
-
 /* prints the last error to stderr
  */
 FANN_EXTERNAL void FANN_API fann_print_error(struct fann_error *errdat)
@@ -106,103 +71,102 @@ FANN_EXTERNAL void FANN_API fann_print_error(struct fann_error *errdat)
 void fann_error(struct fann_error *errdat, const enum fann_errno_enum errno_f, ...)
 {
 	va_list ap;
-	size_t errstr_max = FANN_ERRSTR_MAX + PATH_MAX - 1;
-	char errstr[FANN_ERRSTR_MAX + PATH_MAX];
+	char *errstr;
 	FILE * error_log = fann_default_error_log;
 
 	if(errdat != NULL)
 		errdat->errno_f = errno_f;
 
+	if(errdat != NULL && errdat->errstr != NULL)
+	{
+		errstr = errdat->errstr;
+	}
+	else
+	{
+		errstr = (char *) calloc(FANN_ERRSTR_MAX+1,sizeof(char));
+		if(errstr == NULL)
+		{
+			fprintf(stderr, "Unable to allocate memory.\n");
+			return;
+		}
+	}
+
 	va_start(ap, errno_f);
 	switch (errno_f)
 	{
 	case FANN_E_NO_ERROR:
-		return;
+		break;
 	case FANN_E_CANT_OPEN_CONFIG_R:
-		vsnprintf(errstr, errstr_max, "Unable to open configuration file \"%s\" for reading.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Unable to open configuration file \"%s\" for reading.\n", ap);
 		break;
 	case FANN_E_CANT_OPEN_CONFIG_W:
-		vsnprintf(errstr, errstr_max, "Unable to open configuration file \"%s\" for writing.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Unable to open configuration file \"%s\" for writing.\n", ap);
 		break;
 	case FANN_E_WRONG_CONFIG_VERSION:
-		vsnprintf(errstr, errstr_max,
+		vsnprintf(errstr, FANN_ERRSTR_MAX,
 				 "Wrong version of configuration file, aborting read of configuration file \"%s\".\n",
 				 ap);
 		break;
 	case FANN_E_CANT_READ_CONFIG:
-		vsnprintf(errstr, errstr_max, "Error reading \"%s\" from configuration file \"%s\".\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Error reading \"%s\" from configuration file \"%s\".\n", ap);
 		break;
 	case FANN_E_CANT_READ_NEURON:
-		vsnprintf(errstr, errstr_max, "Error reading neuron info from configuration file \"%s\".\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Error reading neuron info from configuration file \"%s\".\n", ap);
 		break;
 	case FANN_E_CANT_READ_CONNECTIONS:
-		vsnprintf(errstr, errstr_max, "Error reading connections from configuration file \"%s\".\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Error reading connections from configuration file \"%s\".\n", ap);
 		break;
 	case FANN_E_WRONG_NUM_CONNECTIONS:
-		vsnprintf(errstr, errstr_max, "ERROR connections_so_far=%d, total_connections=%d\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "ERROR connections_so_far=%d, total_connections=%d\n", ap);
 		break;
 	case FANN_E_CANT_OPEN_TD_W:
-		vsnprintf(errstr, errstr_max, "Unable to open train data file \"%s\" for writing.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Unable to open train data file \"%s\" for writing.\n", ap);
 		break;
 	case FANN_E_CANT_OPEN_TD_R:
-		vsnprintf(errstr, errstr_max, "Unable to open train data file \"%s\" for writing.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Unable to open train data file \"%s\" for writing.\n", ap);
 		break;
 	case FANN_E_CANT_READ_TD:
-		vsnprintf(errstr, errstr_max, "Error reading info from train data file \"%s\", line: %d.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Error reading info from train data file \"%s\", line: %d.\n", ap);
 		break;
 	case FANN_E_CANT_ALLOCATE_MEM:
-		strcpy(errstr, "Unable to allocate memory.\n");
+		sprintf(errstr, "Unable to allocate memory.\n");
 		break;
 	case FANN_E_CANT_TRAIN_ACTIVATION:
-		strcpy(errstr, "Unable to train with the selected activation function.\n");
+		sprintf(errstr, "Unable to train with the selected activation function.\n");
 		break;
 	case FANN_E_CANT_USE_ACTIVATION:
-		strcpy(errstr, "Unable to use the selected activation function.\n");
+		sprintf(errstr, "Unable to use the selected activation function.\n");
 		break;
 	case FANN_E_TRAIN_DATA_MISMATCH:
-		strcpy(errstr, "Training data must be of equivalent structure.\n");
+		sprintf(errstr, "Training data must be of equivalent structure.\n");
 		break;
 	case FANN_E_CANT_USE_TRAIN_ALG:
-		strcpy(errstr, "Unable to use the selected training algorithm.\n");
+		sprintf(errstr, "Unable to use the selected training algorithm.\n");
 		break;
 	case FANN_E_TRAIN_DATA_SUBSET:
-		vsnprintf(errstr, errstr_max, "Subset from %d of length %d not valid in training set of length %d.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Subset from %d of length %d not valid in training set of length %d.\n", ap);
 		break;
 	case FANN_E_INDEX_OUT_OF_BOUND:
-		vsnprintf(errstr, errstr_max, "Index %d is out of bound.\n", ap);
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Index %d is out of bound.\n", ap);
 		break;
-	case FANN_E_SCALE_NOT_PRESENT: 
-		strcpy(errstr, "Scaling parameters not present.\n");
+	case FANN_E_SCALE_NOT_PRESENT:
+		sprintf(errstr, "Scaling parameters not present.\n");
 		break;
-    case FANN_E_INPUT_NO_MATCH:
-		vsnprintf(errstr, errstr_max, "The number of input neurons in the ann (%d) and data (%d) don't match\n", ap);
-    	break;
-    case FANN_E_OUTPUT_NO_MATCH:
-		vsnprintf(errstr, errstr_max, "The number of output neurons in the ann (%d) and data (%d) don't match\n", ap);
-     	break; 
-	case FANN_E_WRONG_PARAMETERS_FOR_CREATE: 
-		strcpy(errstr, "The parameters for create_standard are wrong, either too few parameters provided or a negative/very high value provided.\n");
+	case FANN_E_INPUT_NO_MATCH:
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "The number of input neurons in the ann (%d) and data (%d) don't match\n", ap);
+		break;
+	case FANN_E_OUTPUT_NO_MATCH:
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "The number of output neurons in the ann (%d) and data (%d) don't match\n", ap);
+		break;
+	case FANN_E_FUNCTION_NA_FOR_SOM:
+		vsnprintf(errstr, FANN_ERRSTR_MAX, "Function called is not applicable to Self-Organizing Maps\n", ap);
 		break;
 	}
 	va_end(ap);
 
 	if(errdat != NULL)
 	{
-		if(errdat->errstr == NULL)
-		{
-			errdat->errstr = (char*)malloc(strlen(errstr) + 1);
-		}
-		else if(strlen(errdat->errstr) < strlen(errstr))
-		{
-			errdat->errstr = (char*)realloc(errdat->errstr, strlen(errstr) + 1);
-		}
-		/* allocation failed */
-		if(errdat->errstr == NULL)
-		{
-			fprintf(stderr, "Unable to allocate memory.\n");
-			return;
-		}
-		strcpy(errdat->errstr, errstr);
+		errdat->errstr = errstr;
 		error_log = errdat->error_log;
 	}
 
@@ -225,3 +189,7 @@ void fann_init_error_data(struct fann_error *errdat)
 	errdat->errno_f = FANN_E_NO_ERROR;
 	errdat->error_log = fann_default_error_log;
 }
+
+/*
+ * vim: ts=2 smarttab smartindent shiftwidth=2 nowrap
+ */

@@ -1,0 +1,66 @@
+<ui version="4.0" >
+ <class>OutputProperty</class>
+ <widget class="QWidget" name="OutputProperty" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>304</width>
+    <height>527</height>
+   </rect>
+  </property>
+  <layout class="QHBoxLayout" >
+   <property name="margin" >
+    <number>0</number>
+   </property>
+   <property name="spacing" >
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QToolBox" name="toolBox" >
+     <property name="currentIndex" >
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="pageStopCondition" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>286</width>
+        <height>385</height>
+       </rect>
+      </property>
+      <attribute name="label" >
+       <string>Stop Condition</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="pagePlotOutput" >
+      <property name="geometry" >
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>286</width>
+        <height>385</height>
+       </rect>
+      </property>
+      <attribute name="label" >
+       <string>Plot Output Values</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="pagePlotError" >
+      <attribute name="label" >
+       <string>Plot Error Values</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="pageSave" >
+      <attribute name="label" >
+       <string>Save</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

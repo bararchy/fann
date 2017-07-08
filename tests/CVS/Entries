@@ -1,0 +1,17 @@
+/Makefile/1.1.2.2/Sun Jan  6 22:40:22 2008//Tgsoc2007
+/cunit_fann.h/1.1.2.2/Sun Jan  6 22:40:22 2008//Tgsoc2007
+/cunit_gng.c/1.1.2.1/Thu Aug 16 20:18:32 2007//Tgsoc2007
+/cunit_runtests.c/1.1.2.2/Sun Jan  6 22:40:22 2008//Tgsoc2007
+/cunit_simple_test.c/1.1.2.1/Sun Jul  8 18:13:43 2007//Tgsoc2007
+/cunit_simple_train.c/1.1.2.1/Sun Jul  8 18:13:42 2007//Tgsoc2007
+/cunit_som_hex.c/1.1.2.1/Thu Aug 16 20:18:31 2007//Tgsoc2007
+/cunit_som_rec.c/1.1.2.1/Thu Aug 16 20:18:31 2007//Tgsoc2007
+/cunit_steepness_train.c/1.1.2.1/Sun Jul  8 18:13:42 2007//Tgsoc2007
+/cunit_unrolled_recurrent.c/1.1.2.1/Mon Jul  9 06:13:28 2007//Tgsoc2007
+/cunit_xor_test.c/1.1.2.1/Sun Jul  8 18:13:41 2007//Tgsoc2007
+/cunit_xor_train.c/1.1.2.1/Sun Jul  8 18:13:41 2007//Tgsoc2007
+/scaling.data/1.1.2.1/Sun Jul  8 18:13:43 2007//Tgsoc2007
+/som_train.data/1.1.2.1/Thu Aug 16 20:18:31 2007//Tgsoc2007
+/xor.data/1.1.2.1/Sun Jul  8 18:13:43 2007//Tgsoc2007
+/xor_fixed.data/1.1.2.1/Sun Jul  8 18:13:40 2007//Tgsoc2007
+D

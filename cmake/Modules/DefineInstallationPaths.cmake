@@ -1,133 +1,144 @@
-if (UNIX OR MINGW OR WIN32)
-    IF (NOT APPLICATION_NAME)
-        MESSAGE(STATUS "${PROJECT_NAME} is used as APPLICATION_NAME")
-        SET(APPLICATION_NAME ${PROJECT_NAME})
-    ENDIF (NOT APPLICATION_NAME)
+if (UNIX)
+	if (APPLE)
+		SET(BUNDLE_NAME ${APPLICATION_NAME})
+		SET(BUNDLE_DIR ${BUNDLE_NAME}.app)
+		SET(RESOURCE_DIR ${BUNDLE_DIR}/Contents/Resources)
+		SET(FRAMEWORK_DIR ${BUNDLE_DIR}/Contents/Frameworks)
 
-    # Suffix for Linux
-    SET(LIB_SUFFIX
-        CACHE STRING "Define suffix of directory name (32/64)"
-    )
+		set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 
-    SET(EXEC_INSTALL_PREFIX
-        "${CMAKE_INSTALL_PREFIX}"
-        CACHE PATH  "Base directory for executables and libraries"
-        FORCE
-    )
+		SET(PHAPI_PLUGIN_INSTALL_DIR ${FRAMEWORK_DIR}/phapi-plugins
+			CACHE PATH "PhApi plugin installation path")
+		SET(DATA_INSTALL_DIR ${RESOURCE_DIR}
+			CACHE PATH "Data installation path")
+	else (APPLE)
+		IF (NOT APPLICATION_NAME)
+			MESSAGE(STATUS "${PROJECT_NAME} is used as APPLICATION_NAME")
+			SET(APPLICATION_NAME ${PROJECT_NAME})
+		ENDIF (NOT APPLICATION_NAME)
 
-    SET(SHARE_INSTALL_PREFIX
-        "${CMAKE_INSTALL_PREFIX}/share"
-        CACHE PATH "Base directory for files which go to share/"
-        FORCE
-    )
+		# Suffix for Linux
+		SET(LIB_SUFFIX
+			CACHE STRING "Define suffix of directory name (32/64)"
+		)
 
-    SET(DATA_INSTALL_PREFIX
-        "${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}"
-        CACHE PATH "The parent directory where applications can install their data" FORCE
-    )
+		SET(EXEC_INSTALL_PREFIX
+			"${CMAKE_INSTALL_PREFIX}"
+			CACHE PATH  "Base directory for executables and libraries"
+			FORCE
+		)
 
-    # The following are directories where stuff will be installed to
-    SET(BIN_INSTALL_DIR
-        "${EXEC_INSTALL_PREFIX}/bin"
-        CACHE PATH "The ${APPLICATION_NAME} binary install dir (default prefix/bin)"
-        FORCE
-    )
+		SET(SHARE_INSTALL_PREFIX
+			"${CMAKE_INSTALL_PREFIX}/share"
+			CACHE PATH "Base directory for files which go to share/"
+			FORCE
+		)
 
-    SET(SBIN_INSTALL_DIR
-        "${EXEC_INSTALL_PREFIX}/sbin"
-        CACHE PATH "The ${APPLICATION_NAME} sbin install dir (default prefix/sbin)"
-        FORCE
-    )
+		SET(DATA_INSTALL_PREFIX
+			"${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}"
+			CACHE PATH "The parent directory where applications can install their data" FORCE
+		)
 
-    SET(LIB_INSTALL_DIR
-        "${EXEC_INSTALL_PREFIX}/lib${LIB_SUFFIX}"
-        CACHE PATH "The subdirectory relative to the install prefix where libraries will be installed (default is prefix/lib)"
-        FORCE
-    )
+		# The following are directories where stuff will be installed to
+		SET(BIN_INSTALL_DIR
+			"${EXEC_INSTALL_PREFIX}/bin"
+			CACHE PATH "The ${APPLICATION_NAME} binary install dir (default prefix/bin)"
+			FORCE
+		)
 
-    SET(LIBEXEC_INSTALL_DIR
-        "${EXEC_INSTALL_PREFIX}/libexec"
-        CACHE PATH "The subdirectory relative to the install prefix where libraries will be installed (default is prefix/libexec)"
-        FORCE
-    )
+		SET(SBIN_INSTALL_DIR
+			"${EXEC_INSTALL_PREFIX}/sbin"
+			CACHE PATH "The ${APPLICATION_NAME} sbin install dir (default prefix/sbin)"
+			FORCE
+		)
 
-    SET(PLUGIN_INSTALL_DIR
-        "${LIB_INSTALL_DIR}/${APPLICATION_NAME}"
-        CACHE PATH "The subdirectory relative to the install prefix where plugins will be installed (default is prefix/lib/${APPLICATION_NAME})"
-        FORCE
-    )
+		SET(LIB_INSTALL_DIR
+			"${EXEC_INSTALL_PREFIX}/lib${LIB_SUFFIX}"
+			CACHE PATH "The subdirectory relative to the install prefix where libraries will be installed (default is prefix/lib)"
+			FORCE
+		)
 
-    SET(INCLUDE_INSTALL_DIR
-        "${CMAKE_INSTALL_PREFIX}/include"
-        CACHE PATH "The subdirectory to the header prefix (default prefix/include)"
-        FORCE
-    )
+		SET(LIBEXEC_INSTALL_DIR
+			"${EXEC_INSTALL_PREFIX}/libexec"
+			CACHE PATH "The subdirectory relative to the install prefix where libraries will be installed (default is prefix/libexec)"
+			FORCE
+		)
 
-    SET(DATA_INSTALL_DIR
-        "${DATA_INSTALL_PREFIX}"
-        CACHE PATH "The parent directory where applications can install their data (default prefix/share/${APPLICATION_NAME})"
-        FORCE
-    )
+		SET(PLUGIN_INSTALL_DIR
+			"${LIB_INSTALL_DIR}/${APPLICATION_NAME}"
+			CACHE PATH "The subdirectory relative to the install prefix where plugins will be installed (default is prefix/lib/${APPLICATION_NAME})"
+			FORCE
+		)
 
-    SET(HTML_INSTALL_DIR
-        "${DATA_INSTALL_PREFIX}/doc/HTML"
-        CACHE PATH "The HTML install dir for documentation (default data/doc/html)"
-        FORCE
-    )
+		SET(INCLUDE_INSTALL_DIR
+			"${CMAKE_INSTALL_PREFIX}/include"
+			CACHE PATH "The subdirectory to the header prefix (default prefix/include)"
+			FORCE
+		)
 
-    SET(ICON_INSTALL_DIR
-        "${DATA_INSTALL_PREFIX}/icons"
-        CACHE PATH "The icon install dir (default data/icons/)"
-        FORCE
-    )
+		SET(DATA_INSTALL_DIR
+			"${DATA_INSTALL_PREFIX}"
+			CACHE PATH "The parent directory where applications can install their data (default prefix/share/${APPLICATION_NAME})"
+			FORCE
+		)
 
-    SET(SOUND_INSTALL_DIR
-        "${DATA_INSTALL_PREFIX}/sounds"
-        CACHE PATH "The install dir for sound files (default data/sounds)"
-        FORCE
-    )
+		SET(HTML_INSTALL_DIR
+			"${DATA_INSTALL_PREFIX}/doc/HTML"
+			CACHE PATH "The HTML install dir for documentation (default data/doc/html)"
+			FORCE
+		)
 
-    SET(LOCALE_INSTALL_DIR
-        "${SHARE_INSTALL_PREFIX}/locale"
-        CACHE PATH "The install dir for translations (default prefix/share/locale)"
-        FORCE
-    )
+		SET(ICON_INSTALL_DIR
+			"${DATA_INSTALL_PREFIX}/icons"
+			CACHE PATH "The icon install dir (default data/icons/)"
+			FORCE
+		)
 
-    SET(XDG_APPS_DIR
-        "${SHARE_INSTALL_PREFIX}/applications/"
-        CACHE PATH "The XDG apps dir"
-        FORCE
-    )
+		SET(SOUND_INSTALL_DIR
+			"${DATA_INSTALL_PREFIX}/sounds"
+			CACHE PATH "The install dir for sound files (default data/sounds)"
+			FORCE
+		)
 
-    SET(XDG_DIRECTORY_DIR
-        "${SHARE_INSTALL_PREFIX}/desktop-directories"
-        CACHE PATH "The XDG directory"
-        FORCE
-    )
+		SET(LOCALE_INSTALL_DIR
+			"${SHARE_INSTALL_PREFIX}/locale"
+			CACHE PATH "The install dir for translations (default prefix/share/locale)"
+			FORCE
+		)
 
-    SET(SYSCONF_INSTALL_DIR
-        "${EXEC_INSTALL_PREFIX}/etc"
-        CACHE PATH "The ${APPLICATION_NAME} sysconfig install dir (default prefix/etc)"
-        FORCE
-    )
+		SET(XDG_APPS_DIR
+			"${SHARE_INSTALL_PREFIX}/applications/"
+			CACHE PATH "The XDG apps dir"
+			FORCE
+		)
 
-    SET(MAN_INSTALL_DIR
-        "${SHARE_INSTALL_PREFIX}/man"
-        CACHE PATH "The ${APPLICATION_NAME} man install dir (default prefix/man)"
-        FORCE
-    )
+		SET(XDG_DIRECTORY_DIR
+			"${SHARE_INSTALL_PREFIX}/desktop-directories"
+			CACHE PATH "The XDG directory"
+			FORCE
+		)
 
-    SET(INFO_INSTALL_DIR
-        "${SHARE_INSTALL_PREFIX}/info"
-        CACHE PATH "The ${APPLICATION_NAME} info install dir (default prefix/info)"
-        FORCE
-    )
+		SET(SYSCONF_INSTALL_DIR
+			"${EXEC_INSTALL_PREFIX}/etc"
+			CACHE PATH "The ${APPLICATION_NAME} sysconfig install dir (default prefix/etc)"
+			FORCE
+		)
 
-  set (CMAKE_CONFIG_DIR "${LIB_INSTALL_DIR}/cmake/fann" CACHE PATH "config dir" FORCE)
-  set (PKGCONFIG_INSTALL_DIR "${LIB_INSTALL_DIR}/pkgconfig" CACHE PATH "pkgconfig dir" FORCE)
-endif ()
+		SET(MAN_INSTALL_DIR
+			"${SHARE_INSTALL_PREFIX}/man"
+			CACHE PATH "The ${APPLICATION_NAME} man install dir (default prefix/man)"
+			FORCE
+		)
 
-if (MSCV)
+		SET(INFO_INSTALL_DIR
+			"${SHARE_INSTALL_PREFIX}/info"
+			CACHE PATH "The ${APPLICATION_NAME} info install dir (default prefix/info)"
+			FORCE
+		)
+	endif (APPLE)	
+endif (UNIX)
+
+if (WIN32)
 	# Same same
 	SET(BIN_INSTALL_DIR .)
 	SET(SBIN_INSTALL_DIR .)
@@ -137,5 +148,5 @@ if (MSCV)
 	SET(ICON_INSTALL_DIR .)
 	SET(SOUND_INSTALL_DIR .)
 	SET(LOCALE_INSTALL_DIR lang)
-endif (MSCV)
+endif (WIN32)
 

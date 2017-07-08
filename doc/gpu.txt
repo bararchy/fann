@@ -1,0 +1,280 @@
+Section: Neural Networks on the GPU
+This section describes the implementation of the current state of the neural networks on the gpu using GLSL project. It includes both a shader code example and a small network implementation example. The code is still expremental and is not included in the FANN library but is available for the user to try out if he wishes.
+
+Topic: Background
+The idea of running neural networks on the gpu is to exploit that many shader programs can run in parallell on the gpu. Since a neural network is much about vector*matrix operations the gpu might suit well for this. When the internal structure where designed the MIMO structure were in mind. One vecor of neurons and a matrix of weights together with an activation function is called a Layer. A Layer produces an output and holds a pointer to an input vector of another Layer. The complete network is constructed of any number of such Layers with generic connections between them. When the network is constructed it must be traversed in the correct order of Layers so that all input of Layer A are computed before the output of Layer A can be computed. The computation of an output is done by a call to a function: run(Layer * layer).
+
+Topic: Implementation
+Each Layer struct holds all variables such as input vector and weight matrix that are represented as textures. It also holds a shader program (fragment program) that is the core of the Layer. The textures are inputs to this program and it renders an output to the output texture, which is input texture in another layer and so on. It is NOT possible to let the output and input of one layer to be the same. This should in theory allow for recurrent network but with the drawback of no immediate self loops are possible.
+
+The values on the textures are 32bit floating point variables and they must be stored in a float vector to be copied onto the textures. For the weight matrices there are currently an issue that must be handleed by the user. The width of the matrix must be a multiple of 4 (see shader topic) even though the actual size can be of an arbitrary size. ex. if the size is 6x2 then float vector must be:
+> [2,2,2,2,2,2,0,0,
+>  2,2,2,2,2,2,0,0]
+the 2's end up used in the shader while the 0's dont. The function CopyWeights(Mask)ToTexture handles this conversion automaticly.
+
+The implementation is mainly tested in a windows environment using an NVIDIA card. This leave alot to be tested on other platforms and other cards. Also due to texture size limitations the maximum size of a vector is 4000 neurons.
+
+Topic: Shader
+To exploit the fact that the shader can perform operations on vectors of size 4 using one instruction the values on a texture are stored in the rgba channels giving 4 values per texel. Each shader can then calculate 4 values instead of 1. This handles internally but it have some minor drawbacks like layers can only be offsetted done by multiples of 4.
+
+Since the both input and output sizes as well as the offset are known when the network is created and the shader source are loaded these values are added to the source code as #defines just before compile. These allowes the shader compiler to work with precalculated constants instead of performing the calculations in runtime. This offsets should be apendend at the top of the shader source but is appended at the first occurence of the ¤ character. This allows the user to put his own defines above this character when debugged with another compiler. Below is an shader example of computing neuron potential and activates it using the sigmoid function.
+
+Example:
+> #version 110
+> #define i_size 4.0
+> #define o_size 8.0
+> #define offset 8.0
+> 
+> //start HERE ¤
+> 
+> //o_size is the number of output neurons
+> //i_size is the number of (input neurons / 4), rounded up
+> //offset is the number that the program should decrease the coords with to get coords starting from 0.
+> 
+> //dynamic inputs to the program.
+> uniform sampler2D input_vector; // inputs
+> uniform sampler2D weights; //weight matrix
+> uniform sampler2D mask; //mask connections - not implemented yet
+> 
+> void main(void){
+> //compiler computations
+>   float i_delta = 1.0/i_size;
+>   float o_delta = 1.0/o_size;
+> 
+> //get the texture coordinates
+>   float col = gl_FragCoord.x-0.5-offset;
+>   float row = col*4.0*o_delta;
+> //initialize the sum vector
+>   vec4 sum = vec4(0.0,0.0,0.0,0.0);
+>   vec2 input_tuple;
+>   vec4 weight_tuple;
+>   vec4 weight_tuple2;
+>   vec4 input;
+> //iterate over the input vector, texel by texel
+>   for (float i=i_delta/2.0; i<1.0; i+=i_delta){
+>     input_tuple = vec2(i, 0.0);
+> 	//compute weight texture coordinates
+> 	weight_tuple = vec4(i, row+0.5*o_delta, i, row+1.5*o_delta);
+> 	weight_tuple2 = vec4(i, row+2.5*o_delta, i, row+3.5*o_delta);
+> 	//get input value
+> 	input = texture2D(input_vector, input_tuple);
+> 	//compute the sum for all 4 elements
+> 	sum.r += dot(input, texture2D(weights, weight_tuple.xy));
+> 	sum.g += dot(input, texture2D(weights, weight_tuple.zw));
+> 	sum.b += dot(input, texture2D(weights, weight_tuple2.xy));
+> 	sum.a += dot(input, texture2D(weights, weight_tuple2.zw));
+>   } 
+>   //return the sigmoid of the sum
+>   vec4 sigmoid = (1.0/(1.0 + exp(-2.0 * sum))); // ACTIVATION FUNCTION
+>   gl_FragColor = sigmoid;
+> }
+
+To implement another activation function just simply modify the vector sum in the desired way. sum is a vec4 (vector of size 4) but can be treated as a single value. The operations will execute on all values in the vector.
+
+> vec4 sigmoid = (1.0/(1.0 + exp(-2.0 * sum))); // ACTIVATION FUNCTION
+
+
+Topic: Requirements
+GLUT(windows) / OpenGLUT(linux, mac). - GLUT is preferred since it doesnt open a rendering window.
+OpenGL 2.0
+Graphics card: GF6 or better
+
+Fully support:
+Windows XP
+NVIDIA cards
+
+Expremental support:
+Linux
+Mac OS
+ATI cards
+Other Windows OS except Vista.
+
+It doesnt work under Windows Vista due to poor OpenGL support. Might change in the future.
+
+
+Topic: Usage
+First the OpenGL context must be initialized. This is done by the call:
+> InitOpenGL();
+
+Then it is wise to test the system and check if it the lib can run on it. test() returns a char* with info on what went wrong. If all is ok, it returns 0.
+> if ((error = test()) != 0)
+> 		printf("Error: %s\n", error);
+
+If the system passes the test it must be initialized. i.e. all used external function pointers will be set up and other variables are given values. init() returns 1 if successful and 0 if it fails.
+> 	if (!init())
+> 		printf("Init not successful...");
+
+To create a standard 2 layer feed forward network actually 3 layers are needed. 
+
+> // A-B-C
+> //  ^ ^ - these are the actual layers
+> // (A-)(B-)(C) C is only used to hold output
+Each layer need to know what shader program it shall run, the "sigmoid_sum.fp" program sums the weighted input and activates it using the sigmoid function. Also no offset are needed.
+> layer *A, *B, *C 
+> A = generateLayer("sigmoid_sum.fp", 3, 5, 0); 
+> B = generateLayer("sigmoid_sum.fp", 5, 2, 0);
+> C = generateLayer(0, 2, 0, 0); // no output neurons nor a shader program
+
+Connect the layer in the desired order. Each layer gets an input vector on creation. This is user to forge the network to the desired shape.
+> setOutput(A, B); //sets the (initially empty) output vector pointer in A to point to the input of B
+> setOutput(B, C);
+
+Then fill each of the layer weights with data. It is assumed that float arrays named weight_matrixA and weight_matrixB contain the weights.
+> //copy the weights to textures on the layers
+> copyWeightsToTexture(weight_matrixA, A);
+> copyWeightsToTexture(weight_matrixB, B);
+
+Let the input to the net be stored in a float array named input. And copy the data to the input vector of layer A
+> copyVectorToTexture(input, A);
+
+Execute the net is done bu runneing the layers in the network in the correct order. This must be controlled by the user to allow for more complex structures. But in this example it is easy.
+> run(A);
+> run(B);
+
+To get back the output from the last layer (C) either use 
+> copyVectorFromTexture(output, C)
+that stores the output of layer C to a float array output. Or use:
+> printLayer(C);
+to print the output to stdout.
+
+
+Topic: Example
+The following code creates a structure of layers: A-E are layers.
+  B
+ / \
+A   D-E
+ \ /
+  C
+A - 3 input, 36 output
+B - 36 input, 16 output
+C - 36 input, 22 output offsetted by 16 to append the 16 of layer B
+D - 38 input the sum of B and C, 5 output
+E - 5 input
+
+note that in each layer an arbitrary number of neurons can be placed (max 4000)
+
+Example:
+> #include "fann_gpu.h"
+> 
+> layer *A, *B, *C, *D, *E;
+> float *input, *weight_matrix, *mask_matrix;
+> int i,j;
+> double start, end, run_time;
+> 
+> //Dummy function for filling weights and mask with dummy data, it preserves the texture sizes wich is multiples of 4.
+> void fillWeights(layer *target);
+> 
+> //dummy vector data
+> void fillVector(layer *target);
+> 
+> int main(int argc, char **arg){
+> 	char* error;
+> 	int n = 5;
+> 
+> 	//start OpenGL
+> 	initOpenGL();
+> 
+> 	//testing system compatibility
+> 	if ((error = test()) != 0){
+> 		printf("Error: %s\n", error);
+> 		return -1;
+> 	}
+> 
+> 	//initializing system.
+> 	if (!init()){
+> 		printf("Init not successful...");
+> 		return -1;
+> 	}
+> 
+> 	//create layers using the sigmoid_sum fragment program.
+> 	A = generateLayer("sigmoid_sum_masked.fp", 4, 40, 0);
+> 	B = generateLayer("sigmoid_sum_masked.fp", 40, 16, 0);
+> 	C = generateLayer("sigmoid_sum_masked.fp", 40, 22, 16);
+> 	D = generateLayer("sigmoid_sum_masked.fp", 38, 5, 0);
+> 	E = generateLayer(0, 5, 0, 0);
+> 
+> 	setOutput(A, B);
+> 	setInput(C, A);
+> 	setOutput(B, D);
+> 	setOutput(C, D);
+> 	setOutput(D, E);
+> 
+> 	//dummy values.
+> 	//fill vectors with values.
+> 
+> 	fillWeights(A);
+> 	copyWeightsToTexture(weight_matrix, A);
+> 	copyMaskToTexture(mask_matrix, A);
+> 	free(weight_matrix);
+> 	free(mask_matrix);
+> 
+> 	fillWeights(B);
+> 	copyWeightsToTexture(weight_matrix, B);
+> 	copyMaskToTexture(mask_matrix, B);
+> 	free(weight_matrix);
+> 	free(mask_matrix);
+> 
+> 	fillWeights(C);
+> 	copyWeightsToTexture(weight_matrix, C);
+> 	copyMaskToTexture(mask_matrix, C);
+> 	free(weight_matrix);
+> 	free(mask_matrix);
+> 
+> 	fillWeights(D);
+> 	copyWeightsToTexture(weight_matrix, D);
+> 	copyMaskToTexture(mask_matrix, D);
+> 	free(mask_matrix);
+> 	free(weight_matrix);
+> 
+> 	//Execute the network n times.
+> 	while (n-->0){
+> 		fillVector(A);
+> 		copyVectorToTexture(input, A);
+> 		run(A);
+> 		run(B);
+> 		run(C);
+> 		run(D);
+> 		printLayer(E);
+> 		free(input);
+> 	}
+> 
+> 	//clean up
+> 	destroyLayer(A);
+> 	destroyLayer(B);
+> 	destroyLayer(C);
+> 	destroyLayer(D);
+> 	destroyLayer(E);
+> 
+> 	return 0;
+> }
+> 
+> //Dummy function for filling weights and mask with dummy data, it preserves the texture sizes wich is multiples of 4.
+> void fillWeights(layer *target){
+> 	weight_matrix = calloc(target->out_size * target->size, sizeof(float));
+> 	mask_matrix = calloc(target->out_size * target->size, sizeof(float));
+> 
+> 	for(i=0; i<target->out_size; i++){
+> 		for(j=0; j<target->size; j++){
+> 			weight_matrix[j+i*target->size] = RAND_UNI;
+> 			//weight_matrix[j+i*target->size] = j+i*target->size;
+> 			//weight_matrix[j+i*target->size] = 1.0f;
+> 			mask_matrix[j+i*target->size] = 1;
+> 		}
+> 	}
+> }
+> 
+> //dummy vector data
+> void fillVector(layer *target){
+> 	input = malloc(sizeof(float)*target->size);
+> 	for(i=0; i<target->size; i++){
+> 		input[i] = RAND_UNI;
+> 		//input[i] = i;
+> 		//input[i] = 1;
+> 	}
+> }
+> 
+
+
+Topic: TODO's
+-support more cards and platforms
+-Implement training

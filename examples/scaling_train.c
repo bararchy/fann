@@ -1,4 +1,4 @@
-#include "../include/fann/fann.h"
+#include "fann.h"
 
 int main( int argc, char** argv )
 {
@@ -14,8 +14,11 @@ int main( int argc, char** argv )
 	fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
 	fann_set_activation_function_output(ann, FANN_LINEAR);
 	fann_set_training_algorithm(ann, FANN_TRAIN_RPROP);
-	data = fann_read_train_from_file("../../datasets/scaling.data");
-	fann_set_scaling_params(
+	data = fann_read_train_from_file( "scaling.data" );
+	/* Just pass any param to perform scaling */
+	if( argc > 1 )
+	{
+		fann_set_scaling_params(
 		    ann,
 			data,
 			-1,	/* New input minimum */
@@ -23,10 +26,16 @@ int main( int argc, char** argv )
 			-1,	/* New output minimum */
 			1);	/* New output maximum */
 
-	fann_scale_train( ann, data );
+		fann_scale_train( ann, data );
 
+		/*		
+		fann_save_train(data, "scaled_scaling.data");
+		fann_descale_train( ann, data );
+		fann_save_train(data, "descaled_scaling.data");
+		*/
+	}
 	fann_train_on_data(ann, data, max_epochs, epochs_between_reports, desired_error);
-	fann_destroy_train( data );
+	free( data );
 	fann_save(ann, "scaling.net");
 	fann_destroy(ann);
 	return 0;

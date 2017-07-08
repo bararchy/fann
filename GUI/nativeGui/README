@@ -1,0 +1,18 @@
+The following istructions are for Linux platform only.
+
+REQUISITIES:
+
+    * QT 4.x development library
+    * Blas/cBlas library
+    * FANN library, CVS Version, gsoc2007 branch (the GUI needs MIMO Neurons feature)
+
+
+BUILD ISTRUCTIONS
+
+    In the nativeGui directory, type:
+        qmake && make
+
+    To run the application, type:
+        bin/nativeGui
+
+    An installation target is not yet provided.

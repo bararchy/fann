@@ -1,0 +1,88 @@
+Section: Plugin for the Player/Stage Robotics Simulator
+Fast Artificial Neural Network Library (fann)
+
+  This directory contains files for integrating FANN with Player/Stage, 
+a robotics simulator.  The fanndriver is a generic driver that can take
+inputs that it feeds into a FANN neural network.  The type of network 
+and some parameters can be modified in the Player/Stage config file.
+Currently, there are two examples in the libplayerc directory, one that
+takes in robot positions and feeds them to a Self-Organizing Map.  The second
+example uses a neural network that takes in laser readings from the robot 
+and outputs a control vector that controls the robot.  This can be used to learn
+an arbitrary control system, and in the example we use obstacle avoidance.  One
+can easily modify it to train the robot via, for example, joysticking the robot
+around.
+
+Topic: INSTRUCTIONS FOR INSTALLATION
+  
+  In order to compile this, you must copy all of the files in this directory
+into the root directory of Player/Stage distribution.  It can be downloaded at:
+  http://sourceforge.net/project/showfiles.php?group_id=42445
+  This code has been tested with the latest distribution as of 08/17/2007, 
+Player 2.0.4 and Stage 2.0.3.  Untar the Player distribution and cd to that directory.
+You must then copy all the files in this directory into the Player/Stage distribution, e.g.:
+
+ [~/player-2.0.4]$ cp -r ~/fann/PlayerStagePlugin/* .
+
+ You may then compile the entire Player/Stage distribution as instructed in their
+documentation.  There is no need to modify the Stage distribution, but you must
+compile it since the examples use the simulator.
+
+Topic: SUPPORTED PARAMETERS IN CONFIGURATION FILE
+
+  Player/Stage drivers can be configured in a special configuration file.
+
+  The following parameters are supported to the driver:
+    nettype (values: ANN,SOM,GNG)   - The type of network to be trained
+    netname                         - Name of network file when saving/loading
+    loadnet (values: 0,1)           - Specifies whether to load a network from file (the name of which is specified by the "netname" parameter
+    numinput                        - Specifies number of inputs to the network
+    numoutput                       - Specifies number of outputs from the network
+
+  These parameters are valid only for ANN-type networks:
+    numhidden (values: any integer) - Specifies number of hidden layers
+
+  These parameters are valid only for SOM-type networks:
+    som_width                                    - Width of SOM 
+    som_height                                   - Height of SOM
+    som_radius                                   - Radius of initial SOM neighborhood
+    som_learningrate                             - Learning rate
+    som_learningrateconstant                     - Learning rate constant (for decay function)
+    som_topology (values: hex,rec)               - SOM topology type
+    som_neighborhood (values: gaussian,distance) - SOM neighborhood function type
+    som_decay (values: linear,inverse)           - Decay function type for learning rate
+    som_maxtraining                              - Maximum number of training points
+
+  These parameters are valid only for GNG-type networks:
+    gng_maxnodes                   - Maximum number of nodes to grow to
+    gng_maxage                     - Maximum age before a node is deleted
+    gng_nodeinsertiteration        - Iteration number of node insertion
+    gng_localerrorreductionfactor  - Scaling factor bet. 0 and 1 for err reduction of moved nodes
+    gng_globalerrorreductionfactor - Scaling factor bet. 0 and 1 for err reduction of all other nodes
+    gng_winningnodescalingfactor   - Scaling factor bet. 0 and 1 for movement of winning node
+    gng_neighbornodescalingfactor  - Scaling factor bet. 0 and 1 for movement of neigh. nodes
+  
+
+Topic: INSTRUCTIONS FOR RUNNING
+
+  After compilation, you may run the example in the examples/libplayerc/ directory:
+
+  To run the ANN example
+  [~/] cd player-2.0.4/examples/libplayerc
+  [~/player-2.0.4/examples/libplayerc] player fann_som_test.cfg &
+  [~/player-2.0.4/examples/libplayerc] ./fann_ann_test
+
+  To run the SOM example:
+  [~/] cd player-2.0.4/examples/libplayerc
+  [~/player-2.0.4/examples/libplayerc] player fann_som_test.cfg &
+  [~/player-2.0.4/examples/libplayerc] ./fann_ann_test
+
+  Note that you must have the fann and Player/Stage installed library directorys in your
+LD_LIBRARY_PATH as well as the bin directory for Player/Stage in your PATH environment
+variables.
+
+  For the ANN example, you can either train the network from an arbitrary network or
+test the network so that it controls the robot from a loaded ANN. In order to train 
+the network, set the constant FANN_TRAIN in the fann_ann_test.c file,
+and specify a network name in the configuration file.  After training is complete, 
+you can then unset the constant, and specify loadnet option in the configuration file.

@@ -1,0 +1,24 @@
+/CMakeLists.txt/1.1.2.6/Sat Aug 25 15:33:42 2007//Tgsoc2007
+/Makefile.am/1.9.4.6/Fri Aug 31 15:36:22 2007//Tgsoc2007
+/compat_time.h/1.4.4.2/Mon Jul 30 05:01:40 2007//Tgsoc2007
+/config.h/1.4.4.3/Mon Jun 29 17:32:52 2009//Tgsoc2007
+/doublefann.h/1.4.4.1/Tue Jul 17 16:23:03 2007//Tgsoc2007
+/fann.h/1.41.4.12/Tue Jan 22 09:53:39 2008//Tgsoc2007
+/fann_activation.h/1.21.4.1/Tue Jul 17 16:23:04 2007//Tgsoc2007
+/fann_cascade.h/1.9.4.1/Tue Jul 17 16:23:04 2007//Tgsoc2007
+/fann_cpp.h/1.8.4.1/Tue Jul 17 16:23:04 2007//Tgsoc2007
+/fann_data.h/1.40.4.16/Sat Jan 19 22:41:16 2008//Tgsoc2007
+/fann_error.h/1.8.4.3/Sun Jan 20 19:24:24 2008//Tgsoc2007
+/fann_generic.h/1.1.2.7/Fri Aug 31 11:28:38 2007//Tgsoc2007
+/fann_gng.h/1.1.2.3/Thu Aug 16 20:52:00 2007//Tgsoc2007
+/fann_internal.h/1.41.4.8/Tue Jan 22 20:26:56 2008//Tgsoc2007
+/fann_io.h/1.7.4.1/Tue Jul 17 16:23:05 2007//Tgsoc2007
+/fann_recurrent.h/1.1.2.2/Thu Aug 30 02:58:14 2007//Tgsoc2007
+/fann_som.h/1.1.2.4/Thu Aug 16 20:17:03 2007//Tgsoc2007
+/fann_sparse.h/1.1.2.2/Thu Jul 19 12:53:04 2007//Tgsoc2007
+/fann_train.h/1.26.4.2/Sun Aug 31 11:16:25 2008//Tgsoc2007
+/fixedfann.h/1.4.4.1/Tue Jul 17 16:23:05 2007//Tgsoc2007
+/floatfann.h/1.4.4.1/Tue Jul 17 16:23:06 2007//Tgsoc2007
+/stamp-h/1.1/Wed Nov 12 23:27:24 2003//Tgsoc2007
+/stamp-h.in/1.1/Wed Nov 12 23:27:24 2003//Tgsoc2007
+D

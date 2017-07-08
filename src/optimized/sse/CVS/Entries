@@ -1,0 +1,8 @@
+/CMakeLists.txt/1.1.2.4/Fri Aug 24 16:07:52 2007//Tgsoc2007
+/Makefile.am/1.1.2.5/Sun Aug 26 00:14:40 2007//Tgsoc2007
+/fann.c/1.1.2.5/Sun Jan 20 19:24:25 2008//Tgsoc2007
+/fann_base.c/1.1.2.5/Mon Sep  3 22:10:24 2007//Tgsoc2007
+/fann_sse_mimo.c/1.1.2.2/Sun Jan 20 19:24:25 2008//Tgsoc2007
+/fann_sse_mimo_batch.c/1.1.2.5/Fri Aug 31 11:28:41 2007//Tgsoc2007
+/fann_sse_mimo_rprop.c/1.1.2.5/Fri Aug 31 11:28:41 2007//Tgsoc2007
+D
