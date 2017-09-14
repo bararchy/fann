@@ -35,5 +35,5 @@ install_manifest.txt
 *.filters
 *.vcxproj
 /bin/
-#/BorlandC++Builder6.0 
-#/Borland\ Developer\ Studio 
+/BorlandC++Builder6.0 
+/Borland\ Developer\ Studio 
