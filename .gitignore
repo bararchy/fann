@@ -34,3 +34,6 @@ install_manifest.txt
 *.suo
 *.filters
 *.vcxproj
+/bin/
+#/BorlandC++Builder6.0 
+#/Borland\ Developer\ Studio 
